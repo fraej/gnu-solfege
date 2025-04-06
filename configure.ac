@@ -18,7 +18,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([GNU Solfege],[3.23.0],[bug-solfege@gnu.org])
-AC_CONFIG_HEADER(config.h)
+AC_CONFIG_HEADERS([config.h])
 
 PACKAGE=solfege
 AC_SUBST(PACKAGE)
