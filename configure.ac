@@ -99,7 +99,7 @@ AC_PATH_PROG(XSLTPROC, xsltproc)
 AC_SUBST(XSLTPROC)
 
 AC_ARG_ENABLE(docbook-stylesheet,
-   AC_HELP_STRING([--enable-docbook-stylesheet=PATH],
+   AS_HELP_STRING([--enable-docbook-stylesheet=PATH],
    [PATH is filename including full path to the html/chunk.xsl
     stylesheet.]),
   [STYLESHEET=$enableval],
@@ -112,7 +112,7 @@ AC_SUBST(HAVE_STYLESHEET)
 AC_CHECK_HEADER(sys/soundcard.h, HAVE_SOUNDCARD_H=yes, HAVE_SOUNDCARD_H=no)
 AC_SUBST(HAVE_SOUNDCARD_H)
 
-AC_ARG_ENABLE(oss-sound, AC_HELP_STRING([--disable-oss-sound],
+AC_ARG_ENABLE(oss-sound, AS_HELP_STRING([--disable-oss-sound],
     [Do not build module for OSS sound. Use this if you OS don't support OSS]),
     [ENABLE_OSS_SOUND=$enableval],
     [ENABLE_OSS_SOUND=$HAVE_SOUNDCARD_H])
@@ -125,13 +125,13 @@ if test $HAVE_SOUNDCARD_H = "no"; then
   fi
 fi
 
-AC_ARG_ENABLE(winmidi, AC_HELP_STRING([--enable-winmidi],
+AC_ARG_ENABLE(winmidi, AS_HELP_STRING([--enable-winmidi],
     [Build the winmidi.pyd module. This is required to get sound on MS Windows.]),
     [ENABLE_WINMIDI=$enableval],
     [ENABLE_WINMIDI=no])
 AC_SUBST(ENABLE_WINMIDI)
 
-AC_ARG_ENABLE(tuner, AC_HELP_STRING([--enable-tuner],
+AC_ARG_ENABLE(tuner, AS_HELP_STRING([--enable-tuner],
     [the microphone experiment (default: disable). This code is dead, it
      does not work.]),
     [ENABLE_TUNER=$enableval],
