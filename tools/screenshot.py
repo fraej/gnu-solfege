@@ -14,7 +14,7 @@ def run(cmd):
 
 def get_image_dim(fn):
     output = Popen(["file", fn], stdout=PIPE).communicate()[0]
-    r = re.compile("(\d+)\s*x+\s*(\d+)")
+    r = re.compile(r"(\d+)\s*x+\s*(\d+)")
     m = r.search(output)
     if m:
         return int(m.groups()[0]), int(m.groups()[1])

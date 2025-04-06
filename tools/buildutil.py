@@ -54,7 +54,7 @@ def create_manpage():
     options = "\n".join(v)
     # This option is so long that it messes with the columns,
     # and it confuses txt2man.
-    options = re.sub('--disable-exception-handler\s*',
+    options = re.sub(r'--disable-exception-handler\s*',
                      '--disable-exception-handler  ', options)
     with open("solfege.1.txt", "r") as f:
         s = f.read().replace('XXOPTIONS', options)

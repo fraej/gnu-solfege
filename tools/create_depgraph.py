@@ -34,12 +34,12 @@ class ModuleInfo(object):
         self.m_usage = set()
 
 # import os, sys, solfege.mpd
-re2 = re.compile("^(?P<imp>import)\s+(?P<modulelist>((\w[\.\w]+,\s*)*)\w[\.\w]+)$")
+re2 = re.compile(r"^(?P<imp>import)\s+(?P<modulelist>((\w[\.\w]+,\s*)*)\w[\.\w]+)$")
 # import solfege.ElementTree as et
-re3 = re.compile("^(?P<imp>import)\s+(?P<module>\w[\.\w]+)\s+as\s+(?P<asmodule>\w+)")
-re5 = re.compile("^from\s+(?P<module>\w[\.\w]+)\s+import\s+(?P<imodule>\w[\.\w]+)\s+as\s+(?P<asmodule>\w[\.\w]+)$")
-re6 = re.compile("^from\s+(?P<module>solfege(\.\w+)*)\s+import\s+((?P<modulelist>((\w[\.\w]+,\s*)*)\w[\.\w]+)|\*)$")
-re_comma = re.compile(",\s*")
+re3 = re.compile(r"^(?P<imp>import)\s+(?P<module>\w[\.\w]+)\s+as\s+(?P<asmodule>\w+)")
+re5 = re.compile(r"^from\s+(?P<module>\w[\.\w]+)\s+import\s+(?P<imodule>\w[\.\w]+)\s+as\s+(?P<asmodule>\w[\.\w]+)$")
+re6 = re.compile(r"^from\s+(?P<module>solfege(\.\w+)*)\s+import\s+((?P<modulelist>((\w[\.\w]+,\s*)*)\w[\.\w]+)|\*)$")
+re_comma = re.compile(r",\s*")
 
 
 def test_re():

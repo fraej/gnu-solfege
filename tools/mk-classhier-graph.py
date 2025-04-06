@@ -76,7 +76,7 @@ class ClassDb(object):
         print >> f, "}"
         f.close()
 
-class_re = re.compile("""
+class_re = re.compile(r"""
    (?P<all>class\s*
     (?P<classname>[a-zA-Z]\w*)
     (\(

@@ -57,7 +57,7 @@ FLOAT = 'FLOAT'
 CHAR = 'CHAR'
 EOF = 'EOF'
 
-NEW_re = re.compile("""(?:
+NEW_re = re.compile(r"""(?:
                         (\s+)|  #space
                         (\#.*?$)| #comment
                         (-?\d+\.\d+) | #float
@@ -227,7 +227,7 @@ def read_encoding_marker_from_string(string):
     the encoding marker must be in the first two lines
     Return None if no encoding marker found
     """
-    r = re.compile("#.*?coding\s*[:=]\s*([\w_.-]+)")
+    r = re.compile(r"#.*?coding\s*[:=]\s*([\w_.-]+)")
     c = 0
     for line in string.split("\n"):
         m = r.match(line)
@@ -244,7 +244,7 @@ def read_encoding_marker_from_file(filename):
     the encoding marker must be in the first two lines
     Return None if no encoding marker found
     """
-    r = re.compile(b"#.*?coding\s*[:=]\s*([\w_.-]+)")
+    r = re.compile(br"#.*?coding\s*[:=]\s*([\w_.-]+)")
     with open(filename, 'br') as f:
         line = f.readline()
         m = r.match(line)
@@ -400,7 +400,7 @@ class Dataparser:
 
     def __init__(self):
         self.m_filename = None
-        self.m_translation_re = re.compile("(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
+        self.m_translation_re = re.compile(r"(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
 
     def parse_file(self, filename):
         """We always construct a new parser if we want to parse another

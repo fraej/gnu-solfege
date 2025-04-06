@@ -25,7 +25,7 @@ options, args = op.parse_args()
 def parse_build_log():
     f = open("build.log", "r")
     curlang = None
-    docbook_langstart = re.compile("\(cd help\/(\w+)\/")
+    docbook_langstart = re.compile(r"\(cd help\/(\w+)\/")
     stack = []
     for line in f.readlines():
         line = line.strip()

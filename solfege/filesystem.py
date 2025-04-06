@@ -74,7 +74,7 @@ def get_home_dir():
 
 def win32_program_files_folder():
     """
-    Return the name of the C:\Program files folder.
+    Return the name of the C:\\Program files folder.
     """
     return mywinreg._get_reg_value(winreg.HKEY_LOCAL_MACHINE,
         r"SOFTWARE\Microsoft\Windows\CurrentVersion", r"ProgramFilesDir")

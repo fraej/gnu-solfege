@@ -84,9 +84,9 @@ import re
 from solfege import filesystem
 
 # match both "section-name" and "user:dir/module"
-section_re = re.compile("^\[([\w\:\/-_]*?)\]")
-value_re = re.compile("^([\w-]*?)=(.*)")
-comment_re = re.compile("#.*")
+section_re = re.compile(r"^\[([\w\:\/-_]*?)\]")
+value_re = re.compile(r"^([\w-]*?)=(.*)")
+comment_re = re.compile(r"#.*")
 
 _blocked_watches = {}
 _watches = {}

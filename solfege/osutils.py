@@ -97,7 +97,7 @@ class BinaryForMediaPlayerException(BinaryBaseException):
 
 
 class BinaryForMediaConvertorException(BinaryBaseException):
-    r = re.compile("app/(?P<from>[a-z0-9]+)_to_(?P<to>[a-z0-9]+)_cmd")
+    r = re.compile(r"app/(?P<from>[a-z0-9]+)_to_(?P<to>[a-z0-9]+)_cmd")
 
     def __init__(self, varname, binary, exception):
         BinaryBaseException.__init__(self, binary, exception)
@@ -208,7 +208,7 @@ def find_csound_executables():
     """
     Return a list of possible csound executables.
     Currently we return the name of the csound binary found as
-    %PROGRAMFILES%\csound\bin\csound.exe
+    %PROGRAMFILES%\\csound\\bin\\csound.exe
     """
     retval = find_progs(('csound.exe', 'csound'))
     if sys.platform == 'win32':

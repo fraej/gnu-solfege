@@ -21,8 +21,8 @@ parser.add_option("-f", action="store_true", dest="display_filename",
 
 (options, args) = parser.parse_args()
 
-r = re.compile("\"%s\|(?P<prefix>.*?)\"" % options.string_prefix)
-prefix_re = re.compile("\s*name\s*=\s*.*?\"(?P<prefix>.*?)\|.*?\"")
+r = re.compile(r"\"%s\|(?P<prefix>.*?)\"" % options.string_prefix)
+prefix_re = re.compile(r"\s*name\s*=\s*.*?\"(?P<prefix>.*?)\|.*?\"")
 db = {}
 
 

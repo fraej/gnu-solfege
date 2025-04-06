@@ -79,7 +79,7 @@ def find_possible_first_note(music):
     re_time = re.compile(r"\\time\s+(\d+)\s*/\s*(\d+)", re.UNICODE)
     re_times = re.compile(r"\\times\s+(\d+)\s*/\s*(\d+)\s*{", re.UNICODE)
     re_key = re.compile(r"\\key\s+([a-z]+)\s*\\(major|minor)", re.UNICODE)
-    re_note = re.compile("(?P<beamstart>(\[\s*)?)(?P<chordstart>(\<\s*)?)(?P<pitchname>[a-zA-Z]+[',]*)(\d+\.*)?")
+    re_note = re.compile(r"(?P<beamstart>(\[\s*)?)(?P<chordstart>(\<\s*)?)(?P<pitchname>[a-zA-Z]+[',]*)(\d+\.*)?")
     i = 0
     re_list = re_white, re_clef_quoted, re_clef, re_key, re_times, re_time, re_note
     while 1:

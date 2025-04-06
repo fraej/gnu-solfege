@@ -30,8 +30,8 @@ def tex_subst(s):
 
 
 def so2ly(s, musicformat):
-    re_staff = re.compile("\\\\staff")
-    re_addvoice = re.compile("\\\\addvoice")
+    re_staff = re.compile(r"\\staff")
+    re_addvoice = re.compile(r"\\addvoice")
     v = re_staff.split(s)
     v = filter(lambda i: i != "", v)
     v = map(lambda s, r=re_addvoice: r.split(s), v)

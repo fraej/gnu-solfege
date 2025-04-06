@@ -231,9 +231,9 @@ lessonfile_builtins = {
 
 def rnc_markup_tokenizer(s):
     """
-    [rn][mod1][num][\s-]
+    [rn][mod1][num][\\s-]
     """
-    rn_re = re.compile("""(?P<p1>[b♭♯#]?[ivIV]+)
+    rn_re = re.compile(r"""(?P<p1>[b♭♯#]?[ivIV]+)
                           (?P<p2>[^\d\s-]*)
                           (?P<p3>[^\s-]*)
                           (?P<sep>(\s*-\s*|\s*))""",
@@ -261,7 +261,7 @@ def chordname_markup_tokenizer(s):
     cm:9
     c:11b9/g
     """
-    r = re.compile("""(?P<nn>[cdefgab](es|is)*)
+    r = re.compile(r"""(?P<nn>[cdefgab](es|is)*)
                 (?P<txt1>.*?)
                 (:
                  (?P<sup>.*?))?
@@ -400,7 +400,7 @@ class MpdParsable(MusicBaseClass):
         """
         This functions expect exception.m_lineno, .m_linepos1 and .m_linepos2
         to be set relative to the m_musicdata of the music object,
-        and not relative to the complete mpd string with added \staff{ } etc.
+        and not relative to the complete mpd string with added \\staff{ } etc.
 
         Return a twoline string showing what caused the exception.
         """
@@ -740,7 +740,7 @@ class Rvoice(VoiceCommon):
         """
         This functions expect exception.m_lineno, .m_linepos1 and .m_linepos2
         to be set relative to the m_musicdata of the music object,
-        and not relative to the complete mpd string with added \staff{ } etc.
+        and not relative to the complete mpd string with added \\staff{ } etc.
 
         Return a twoline string showing what caused the exception.
 
@@ -779,10 +779,10 @@ class Satb(ChordCommon):
         if 'key' in lessonfile_ref.get_question():
             k = lessonfile_ref.get_question()['key']
         else:
-            k = "c \major"
-        music = "\\staff{ \key %s\\stemUp <%s> }\n" \
+            k = "c \\major"
+        music = "\\staff{ \\key %s\\stemUp <%s> }\n" \
                 "\\addvoice{ \\stemDown <%s> }\n" \
-                "\\staff{ \key %s\\clef bass \\stemUp <%s>}\n"\
+                "\\staff{ \\key %s\\clef bass \\stemUp <%s>}\n"\
                 "\\addvoice{ \\stemDown <%s>}" % (k, v[0], v[1], k, v[2], v[3])
         if lessonfile_ref.header.random_transpose[0]:
             music = music.replace(r"\staff",
@@ -1021,7 +1021,7 @@ class Music(MpdTransposable):
         """
         Return a twoline string showing what caused the exception.
         This method will report wrong error location if there are
-        more than one \staff command in a line.
+        more than one \\staff command in a line.
         """
         first = exception.m_linepos1
         last = exception.m_linepos2
@@ -1059,7 +1059,7 @@ class Music3(Music):
 
 
 def parse_test_def(s):
-    m = re.match("(\d+)\s*x", s)
+    m = re.match(r"(\d+)\s*x", s)
     count = int(m.groups()[0])
     return (count, 'x')
 
@@ -1074,7 +1074,7 @@ class LessonfileCommon(object):
         self.m_location = "."
         self._idx = None
         self.m_filename = "<STRING>"
-        self.m_translation_re = re.compile("(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
+        self.m_translation_re = re.compile(r"(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
         if module_predefs is None:
             self.m_module_predefs = {}
         else:
@@ -1230,7 +1230,7 @@ class QuestionsLessonfile(LessonfileCommon):
         if 'key' in self.m_questions[self._idx]:
             key = self.m_questions[self._idx]['key']
         else:
-            key = "c \major"
+            key = "c \\major"
         if self.header.random_transpose[0] == True:
             self.header.random_transpose = ['key', -5, 5]
         if self.header.random_transpose[0] in ('semitones', 'atonal'):
@@ -1256,7 +1256,7 @@ class QuestionsLessonfile(LessonfileCommon):
         Called to create random transposition in "accidentals" or "key" mode.
         Create and return a random MusicalPitch representing this transposition.
         Keyword arguments:
-        key -- the key the question is written in, for example "c \major"
+        key -- the key the question is written in, for example "c \\major"
         """
         assert self.header.random_transpose[0] in ('key', 'accidentals')
         low, high = self.header.random_transpose[1:3]
@@ -1522,7 +1522,7 @@ class TestSupport(object):
         Return the amount of exercises that has to be correct to
         pass the test. (values 0.0 to 1.0)
         """
-        m = re.match("([\d\.]+)%", self.header.test_requirement)
+        m = re.match(r"([\d\.]+)%", self.header.test_requirement)
         if m:
             return float(m.groups()[0]) / 100.0
         else:
@@ -2103,7 +2103,7 @@ def parse_lesson_file_header(filename):
 
     Return None if we find no header block.
     """
-    r = re.compile("header\s*{.*?}", re.MULTILINE | re.DOTALL)
+    r = re.compile(r"header\s*{.*?}", re.MULTILINE | re.DOTALL)
     # We cannot read the whole file, since we don't know what the user
     # have placed in the directory. It could be a whole DVD iso image.
     # The actual size we read, 40k, is mentioned in the user manual,

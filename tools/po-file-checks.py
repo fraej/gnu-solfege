@@ -19,8 +19,8 @@ class Entry(object):
 
     def __init__(self, s):
         s = s.strip("\n")
-        msgid_re = re.compile('(msgid|#~ msgid) "(?P<id>.*?)"\s*$')
-        msgstr_re = re.compile('(msgstr|#\~ msgstr) "(?P<str>.*?)"\s*$')
+        msgid_re = re.compile(r'(msgid|#~ msgid) "(?P<id>.*?)"\s*$')
+        msgstr_re = re.compile(r'(msgstr|#\~ msgstr) "(?P<str>.*?)"\s*$')
         data = {'comment': [], 'msgid': [], 'msgstr': []}
         mode = None
         self.m_status = 'translated'
@@ -110,7 +110,7 @@ msgstr "Il file \"%s\"."
         self.assertEqual(e.get_msgstr(), "Il file \"%s\".")
 
 def sniff_po_encoding(filename):
-    r = re.compile(b".*Content-Type: text/plain; charset=(.*?)\\\\n\"")
+    r = re.compile(br".*Content-Type: text/plain; charset=(.*?)\\n\"")
     with open(filename, "br") as f:
         for line in f.readlines():
             m = r.match(line)
@@ -155,9 +155,9 @@ def find_string_formatting(s):
     Make a list with all string formatting operators in the string except
     named operators, like %(name)s
     """
-    s = re.sub("%\s*%", "", s)
-    #r = re.compile("\%(\(\w+\))?(\.?\d+)?\w")
-    r = re.compile("\%(\.?\d+)?[^\s\(]")
+    s = re.sub(r"%\s*%", "", s)
+    #r = re.compile(r"\%(\(\w+\))?(\.?\d+)?\w")
+    r = re.compile(r"\%(\.?\d+)?[^\s\(]")
     start = 0
     m = r.search(s[start:])
     ret = []
@@ -169,8 +169,8 @@ def find_string_formatting(s):
 
 
 def find_string_formatting_mapping_keys(s):
-    s = re.sub("%\s*%", "", s)
-    r = re.compile("\%(\((?P<name>\w*)\))?(?P<notname>(\.?\d+)?[^\s\(])")
+    s = re.sub(r"%\s*%", "", s)
+    r = re.compile(r"\%(\((?P<name>\w*)\))?(?P<notname>(\.?\d+)?[^\s\(])")
     start = 0
     m = r.search(s[start:])
     ret = []

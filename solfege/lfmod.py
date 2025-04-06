@@ -42,7 +42,7 @@ class LfMod(object):
         pprint.pprint(self.m_blocklists)
         print("--------")
 
-translation_re = re.compile("(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
+translation_re = re.compile(r"(?P<varname>\w+)\[(?P<lang>[\w_+]+)\]")
 
 
 def do_assignment(mod, statement, local_namespace, global_namespace, in_header,

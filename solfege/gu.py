@@ -358,7 +358,7 @@ class FlashBar(Gtk.Frame):
 
     def display(self, txt, **kwargs):
         self.empty()
-        r = re.compile("(\{\w+\})")  # Unicode??
+        r = re.compile(r"(\{\w+\})")  # Unicode??
         self.set_size_request(-1, -1)
         for child in r.split(txt):
             m = r.match(child)
@@ -556,9 +556,9 @@ class HarmonicProgressionLabel(AlignedHBox):
         self.set_alignment(self.m_xalign, self.m_yalign)
 
     def get_next_token(self):
-        m_re1 = re.compile("([^\(]+)", re.UNICODE)
-        m_re2 = re.compile("\((\w*),\s*(\w*)\)", re.UNICODE)
-        m_re3 = re.compile("\((\w*)\)", re.UNICODE)
+        m_re1 = re.compile(r"([^\(]+)", re.UNICODE)
+        m_re2 = re.compile(r"\((\w*),\s*(\w*)\)", re.UNICODE)
+        m_re3 = re.compile(r"\((\w*)\)", re.UNICODE)
         m1 = m_re1.match(self.m_str)
         m2 = m_re2.match(self.m_str)
         m3 = m_re3.match(self.m_str)

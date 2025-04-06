@@ -82,7 +82,7 @@ def _pre_3_11_win32_get_langenviron():
         # we get here for example when the file does not exist
         return None
     if s:
-        r = re.compile("set LANGUAGE=(?P<lang>.*)")
+        r = re.compile(r"set LANGUAGE=(?P<lang>.*)")
         for line in s.split("\n"):
             m = r.match(line)
             if m:

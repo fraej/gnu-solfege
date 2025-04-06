@@ -37,7 +37,7 @@ class Duration:
 
     class BadStringException(Exception):
         pass
-    tre = re.compile("^(\d+)(\.*)$")
+    tre = re.compile(r"^(\d+)(\.*)$")
 
     def __init__(self, nh, dots, tuplet=Rat(1, 1)):
         """

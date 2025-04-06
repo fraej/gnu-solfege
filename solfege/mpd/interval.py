@@ -306,7 +306,7 @@ class Interval:
             s = s[1:]
         else:
             self.m_dir = 1
-        m = re.match("(m|M|d|a|p)(\d+)", s)
+        m = re.match(r"(m|M|d|a|p)(\d+)", s)
         if not m:
             raise InvalidIntervalnameException(s_orig)
         modifier, i = m.groups()

@@ -78,7 +78,7 @@ class Clef(object):
        'mezzosoprano': ('C', 2, -2),
             'soprano': ('C', 1, -4),
     }
-    octaviation_re = re.compile("(?P<name>[A-Za-z1-9]+)(?P<oct>([_^])(8|15))?$")
+    octaviation_re = re.compile(r"(?P<name>[A-Za-z1-9]+)(?P<oct>([_^])(8|15))?$")
 
     def __init__(self, clefname):
         m = self.octaviation_re.match(clefname)
