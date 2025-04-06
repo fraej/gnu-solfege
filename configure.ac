@@ -150,7 +150,7 @@ dnl Checks for header files.
 AC_CHECK_HEADERS(fcntl.h sys/ioctl.h unistd.h)
 
 if test "x$ENABLE_OSS_SOUND" = xyes; then
-  if test "x$HAVE_PYTHON_H" = xno; then
+  if test "x$HAVE_PYTHON_H" != xyes; then
         AC_MSG_ERROR([
 *** We need the python header files to build the OSS sound module.
 *** The debian package is called python3-dev, other distributions
