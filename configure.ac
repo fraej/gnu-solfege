@@ -147,7 +147,6 @@ if test "x$ENABLE_TUNER" = xyes; then
 fi
 
 dnl Checks for header files.
-AC_HEADER_STDC
 AC_CHECK_HEADERS(fcntl.h sys/ioctl.h unistd.h)
 
 if test "x$ENABLE_OSS_SOUND" = xyes; then
@@ -163,7 +162,6 @@ dnl Checks for typedefs, structures, and compiler characteristics.
 AC_C_CONST
 
 dnl Checks for library functions.
-AC_PROG_GCC_TRADITIONAL
 #AC_CONFIG_FILES
 
 AC_CONFIG_FILES([
