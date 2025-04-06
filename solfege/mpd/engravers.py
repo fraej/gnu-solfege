@@ -692,6 +692,7 @@ class RestEngraver(Engraver):
         for n in range(self.m_dots):
             ims = cairo.ImageSurface.create_from_png(fetadir + '/feta20-dots-dot.png')
             ct.set_source_surface(
+                ims,
                 int(self.m_xpos + dim.xshift * (1.5 + n / 2.0)),
                 -3 + staff_yoffset + dim.linespacing * self.m_ypos / 2)
             ct.paint()
