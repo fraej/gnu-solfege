@@ -285,7 +285,7 @@ class SolfegeApp(cfg.ConfigUtils):
     def display_sound_init_error_message(self, e):
         if isinstance(e, soundcard.SoundInitException):
             solfege.win.display_error_message(
-            """%s""" % str(e).decode(locale.getpreferredencoding(), 'replace'))
+            """%s""" % str(e))
         elif isinstance(e, ImportError):
             solfege.win.display_error_message2(str(e), _("You should configure sound from the preferences window, and try to use an external midi player. Or try to recompile the program and check for error messages to see why the module is not built."))
         elif getattr(e, 'errno', None) == errno.EACCES:
@@ -293,20 +293,20 @@ class SolfegeApp(cfg.ConfigUtils):
                 "The sound init failed: %s\n"
                 "The errno EACCES indicates that you don't have write "
                 "permission to the device."
-                % str(e).decode(locale.getpreferredencoding(), 'replace'))
+                % str(e))
         elif getattr(e, 'errno', None) == errno.EBUSY:
             solfege.win.display_error_message(
                 "The sound init failed: %s\n"
                 "It seems like some other program is using the device. You "
                 "should try to quit that other program and restart Solfege."
-                % str(e).decode(locale.getpreferredencoding(), 'replace'))
+                % str(e))
         else:
             solfege.win.display_error_message(
                 "The sound init failed: %s\n"
                 "You should configure sound from the 'Sound' page of "
                 "the preferences window.\n\n"
                 "It is also possible that the OS sound setup is incorrect."
-                % str(e).decode(locale.getpreferredencoding(), 'replace'))
+                % str(e))
 
     def please_help_me(self):
         if isinstance(solfege.win.get_view(), abstract.Gui):
