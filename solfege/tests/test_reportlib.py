@@ -35,4 +35,4 @@ class TestReport(unittest.TestCase):
         LatexReport(r, os.path.join(outdir, "t1.tex"))
         os.remove(os.path.join(outdir, "t1.tex"))
 
-suite = unittest.makeSuite(TestReport)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestReport)

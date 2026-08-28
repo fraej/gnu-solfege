@@ -28,4 +28,4 @@ class TestMidiExporter(unittest.TestCase):
         m.end_export()
         os.remove(os.path.join(outdir, "a.mid"))
 
-suite = unittest.makeSuite(TestMidiExporter)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMidiExporter)

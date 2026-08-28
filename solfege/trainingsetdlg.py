@@ -54,11 +54,11 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
         # This VBox will have 2 parts.
         # 1: the tool bar
         # 2: another container widget that has the content of a file
-        self.g_vbox = Gtk.VBox()
+        self.g_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.g_vbox)
         self.setup_toolbar()
         #
-        self.g_settings_box = Gtk.VBox()
+        self.g_settings_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_settings_box.set_border_width(6)
         self.g_vbox.pack_start(self.g_settings_box, False, False, 0)
         self.g_output = {}
@@ -66,16 +66,17 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
         self.g_output['wav'] = Gtk.RadioButton.new_with_mnemonic_from_widget(self.g_output['midi'], _("WAV"))
         self.g_output['mp3'] = Gtk.RadioButton.new_with_mnemonic_from_widget(self.g_output['midi'], _("MP3"))
         self.g_output['ogg'] = Gtk.RadioButton.new_with_mnemonic_from_widget(self.g_output['midi'], _("OGG"))
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(6)
         self.g_settings_box.pack_start(hbox, True, True, 0)
-        hbox.pack_start(Gtk.Label(_("Preferred output format:")),
+        hbox.pack_start(Gtk.Label(label=_("Preferred output format:")),
                                   False, False, 0)
         for s in ('midi', 'wav', 'mp3', 'ogg'):
             hbox.pack_start(self.g_output[s], False, False, 0)
         ####
-        hbox.pack_start(Gtk.VSeparator(), False, False, 0)
-        self.g_named_tracks = Gtk.CheckButton(_("Name files by questions"))
+        hbox.pack_start(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), False, False, 0)
+        self.g_named_tracks = Gtk.CheckButton(
+            label=_("Name files by questions"))
         hbox.pack_start(self.g_named_tracks, False, False, 0)
         self.g_liststore = Gtk.ListStore(
             GObject.TYPE_STRING,  # filename
@@ -83,7 +84,7 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
             GObject.TYPE_INT,  # count
             GObject.TYPE_INT,  # repeat
             GObject.TYPE_INT)  # delay
-        self.g_treeview = Gtk.TreeView(self.g_liststore)
+        self.g_treeview = Gtk.TreeView(model=self.g_liststore)
         self.g_treeview.set_size_request(400, 100)
         self.g_treeview.connect('cursor-changed',
             self.on_treeview_cursor_changed)
@@ -123,7 +124,7 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
         self.add_to_instance_dict()
 
     def on_treeview_cursor_changed(self, treeview):
-        self.g_ui_manager.get_widget("/ExportToolbar/Remove").set_sensitive(True)
+        self.g_toolbar_buttons['Remove'].set_sensitive(True)
 
     def on_count_edited(self, renderer, path, text):
         self._edit_col(2, path, text)
@@ -156,7 +157,7 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
            elif path[0] > 0:
                self.g_treeview.set_cursor((path[0] - 1,))
            else:
-               self.g_ui_manager.get_widget("/ExportToolbar/Remove").set_sensitive(False)
+               self.g_toolbar_buttons['Remove'].set_sensitive(False)
 
     def on_add_lesson_clicked(self, button):
         try:
@@ -195,38 +196,19 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
     def init_empty_file(self):
         self.m_changed = False
         self.set_title(self._get_a_filename())
-        self.g_ui_manager.get_widget("/ExportToolbar/Remove").set_sensitive(False)
+        self.g_toolbar_buttons['Remove'].set_sensitive(False)
 
     def setup_toolbar(self):
-        self.g_actiongroup.add_actions([
-         ('Export', Gtk.STOCK_EXECUTE, _("Export"), None, None, self.on_export),
-         ('Add', Gtk.STOCK_ADD, None, None, None, self.on_add_lesson_clicked),
-         ('Remove', Gtk.STOCK_REMOVE, None, None, None, self.on_remove_lesson_clicked),
-        ])
-        self.g_ui_manager.insert_action_group(self.g_actiongroup, 0)
-        uixml = """
-        <ui>
-         <toolbar name='ExportToolbar'>
-          <toolitem action='Add'/>
-          <toolitem action='Remove'/>
-          <toolitem action='New'/>
-          <toolitem action='Open'/>
-          <toolitem action='Save'/>
-          <toolitem action='SaveAs'/>
-          <toolitem action='Export'/>
-          <toolitem action='Close'/>
-          <toolitem action='Help'/>
-         </toolbar>
-         <accelerator action='Close'/>
-         <accelerator action='New'/>
-         <accelerator action='Open'/>
-         <accelerator action='Save'/>
-        </ui>
-        """
-        self.g_ui_manager.add_ui_from_string(uixml)
-        self.g_vbox.pack_start(self.g_ui_manager.get_widget("/ExportToolbar"),
-                               False, False, 0)
-        self.g_ui_manager.get_widget("/ExportToolbar").set_style(Gtk.ToolbarStyle.BOTH)
+        toolbar = self.create_editor_toolbar([
+            ('Add', _("_Add"), 'list-add-symbolic',
+             self.on_add_lesson_clicked, None),
+            ('Remove', _("_Remove"), 'list-remove-symbolic',
+             self.on_remove_lesson_clicked, None),
+            'New', 'Open', 'Save', 'SaveAs',
+            ('Export', _("_Export"), 'document-export-symbolic',
+             self.on_export, None),
+            'Close', 'Help'])
+        self.g_vbox.pack_start(toolbar, False, False, 0)
 
     def on_show_help(self, widget):
         solfege.app.handle_href("trainingset-editor.html")
@@ -316,8 +298,9 @@ class TrainingSetDialog(Gtk.Window, gu.EditorDialogBase, lessonfilegui.Exercises
             self.select_empty_directory(_("Select where to export the files"))
         if not export_to:
             return
-        progress_dialog = Gtk.Dialog(_("Exporting training set"), self,
-            0, (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL))
+        progress_dialog = Gtk.Dialog(
+            title=_("Exporting training set"), transient_for=self, flags=0)
+        progress_dialog.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
         progress_dialog.show()
         label = Gtk.Label()
         label.set_markup('<span weight="bold">%s</span>' % gu.escape(_("Export training set")))

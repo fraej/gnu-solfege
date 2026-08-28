@@ -42,14 +42,14 @@ def label_from_key(statistics, key):
         l = lessonfilegui.LabelObjectBox(statistics.m_t.m_P, v)
     else:
         l = lessonfilegui.new_labelobject(statistics.key_to_pretty_name(v))
-    l.set_alignment(0.0, 0.5)
+    l.set_xalign(0.0)
     return l
 
 
-class SimpleTable(Gtk.VBox):
+class SimpleTable(Gtk.Box):
 
     def __init__(self, heading, statistics):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.m_heading = heading
         self.m_data = []
         self.m_statistics = statistics
@@ -58,9 +58,9 @@ class SimpleTable(Gtk.VBox):
         self.m_data.append((cell1, cell2))
 
     def create(self):
-        table = Gtk.Table()
+        table = gu.LegacyGrid()
         label = Gtk.Label()
-        label.set_alignment(0.0, 0.5)
+        label.set_xalign(0.0)
         label.set_markup("<b>%s</b>" % self.m_heading)
         self.pack_start(label, True, True, 0)
         for idx, (cell1, cell2) in enumerate(self.m_data):
@@ -69,36 +69,37 @@ class SimpleTable(Gtk.VBox):
             table.attach(Gtk.Label(label=cell2), 3, 4, idx * 2 + 1, idx * 2 + 2,
                          xoptions=Gtk.AttachOptions.SHRINK, xpadding=2)
         for idx in range(len(self.m_data) + 1):
-            table.attach(Gtk.HSeparator(), 0, 5, idx * 2, idx * 2 + 1, xoptions=Gtk.AttachOptions.FILL)
-        table.attach(Gtk.VSeparator(), 0, 1, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
-        table.attach(Gtk.VSeparator(), 2, 3, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
-        table.attach(Gtk.VSeparator(), 4, 5, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
+            table.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 5, idx * 2, idx * 2 + 1, xoptions=Gtk.AttachOptions.FILL)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 0, 1, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 2, 3, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, 5, 0, idx * 2 + 2, xoptions=Gtk.AttachOptions.SHRINK)
         self.pack_start(table, False, False, 0)
         self.show_all()
 
 
-class MatrixTable(Gtk.VBox):
+class MatrixTable(Gtk.Box):
 
     def __init__(self, heading, st_data, st):
         """
         st_data is the statistics data we want displayled
         st is the statistics object the statistics are collected from.
         """
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         label = Gtk.Label(label=heading)
         label.set_name("StatisticsH2")
-        label.set_alignment(0.0, 0.0)
+        label.set_xalign(0.0)
+        label.set_yalign(0.0)
         self.pack_start(label, False, False, 0)
         hbox = gu.bHBox(self, False)
         frame = Gtk.Frame()
         hbox.pack_start(frame, False, False, 0)
-        t = Gtk.Table()
+        t = gu.LegacyGrid()
         frame.add(t)
         keys = st.get_keys(True)
         for x in range(len(keys)):
-            t.attach(Gtk.VSeparator(), x * 2 + 1, x * 2 + 2, 0, len(keys) * 2)
+            t.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), x * 2 + 1, x * 2 + 2, 0, len(keys) * 2)
         for x in range(len(keys) - 1):
-            t.attach(Gtk.HSeparator(), 0, len(keys) * 2 + 1, x * 2 + 1, x * 2 + 2)
+            t.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, len(keys) * 2 + 1, x * 2 + 1, x * 2 + 2)
         for y, key in enumerate(keys):
             l = label_from_key(st, key)
             t.attach(l, 0, 1, y * 2, y * 2 + 1, xpadding=gu.PAD)
@@ -118,7 +119,7 @@ class PercentagesTable(Gtk.Frame):
 
     def __init__(self, statistics):
         Gtk.Frame.__init__(self)
-        table = Gtk.Table()
+        table = gu.LegacyGrid()
         self.add(table)
         self.boxdict = {}
         self.m_totals = {}
@@ -136,10 +137,10 @@ class PercentagesTable(Gtk.Frame):
                      ('last7', _("Last 7 days"), 8), ('total', _("Total"), 11)):
             table.attach(Gtk.Label(label=l), x, x + 2, 0, 1,
                          xpadding=gu.PAD_SMALL, ypadding=gu.PAD_SMALL)
-            b = Gtk.VBox(False, 0)
+            b = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
             table.attach(b, x, x + 1, 6, 7)
             self.boxdict[k + 'percent'] = b
-            b = Gtk.VBox(False, 0)
+            b = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
             table.attach(b, x + 1, x + 2, 6, 7)
             self.boxdict[k + 'count'] = b
             l = Gtk.Label()
@@ -154,15 +155,15 @@ class PercentagesTable(Gtk.Frame):
             table.attach(Gtk.Label(label=_("Count")), x + 1, x + 2, 1, 2,
                          xpadding=gu.PAD_SMALL, ypadding=gu.PAD_SMALL)
         l = Gtk.Label(label=_("Total"))
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         table.attach(l, 0, 1, 4, 5, xpadding=gu.PAD_SMALL, ypadding=gu.PAD_SMALL)
-        table.attach(Gtk.HSeparator(), 0, 13, 3, 4)
-        table.attach(Gtk.HSeparator(), 0, 13, 5, 6)
-        table.attach(Gtk.VSeparator(), 1, 2, 0, 7)
-        table.attach(Gtk.VSeparator(), 4, 5, 0, 7)
-        table.attach(Gtk.VSeparator(), 7, 8, 0, 7)
-        table.attach(Gtk.VSeparator(), 10, 11, 0, 7)
-        self.boxdict['keys'] = key_box = Gtk.VBox(False, 0)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 13, 3, 4)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, 13, 5, 6)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 1, 2, 0, 7)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 4, 5, 0, 7)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 7, 8, 0, 7)
+        table.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL), 10, 11, 0, 7)
+        self.boxdict['keys'] = key_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         table.attach(key_box, 0, 1, 6, 7)
         for key, box in list(self.boxdict.items()):
             box.set_border_width(gu.PAD_SMALL)
@@ -193,11 +194,13 @@ class PercentagesTable(Gtk.Frame):
                        ('total', -1)):
                 num_guess = statistics.get_num_guess_for_key(seconds, k)
                 if num_guess == 0:
-                    self.boxdict[sk + 'percent'].pack_start(Gtk.Label("-"), True, True, 0)
+                    self.boxdict[sk + 'percent'].pack_start(
+                        Gtk.Label(label="-"), True, True, 0)
                 else:
                     self.boxdict[sk + 'percent'].pack_start(
-                        Gtk.Label("%.0f%%" % (statistics.get_num_correct_for_key(seconds, k) / num_guess * 100)), False, False, 0)
-                self.boxdict[sk + 'count'].pack_start(Gtk.Label(str(num_guess)), True, True, 0)
+                        Gtk.Label(label="%.0f%%" % (statistics.get_num_correct_for_key(seconds, k) / num_guess * 100)), False, False, 0)
+                self.boxdict[sk + 'count'].pack_start(
+                    Gtk.Label(label=str(num_guess)), True, True, 0)
         self.show_all()
 
 
@@ -206,11 +209,11 @@ class StatisticsViewer(Gtk.ScrolledWindow):
     def __init__(self, statistics, heading):
         Gtk.ScrolledWindow.__init__(self)
         self.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
-        self.vbox = Gtk.VBox(False, 0)
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         self.vbox.set_spacing(gu.PAD)
         self.vbox.set_border_width(gu.PAD)
-        self.add_with_viewport(self.vbox)
-        hbox = Gtk.HBox(False, 0)
+        self.add(self.vbox)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         hbox.set_spacing(gu.hig.SPACE_SMALL)
         im = Gtk.Image.new_from_file("graphics/applications-system.svg")
         self.g_settings_button = b = Gtk.Button()
@@ -218,12 +221,12 @@ class StatisticsViewer(Gtk.ScrolledWindow):
         b.add(im)
         hbox.pack_start(b, False, False, 0)
         self.g_heading = Gtk.Label(label=heading)
-        self.g_heading.set_alignment(0.0, 0.5)
+        self.g_heading.set_xalign(0.0)
         self.g_heading.set_name("StatisticsH1")
         hbox.pack_start(self.g_heading, False, False, 0)
         self.vbox.pack_start(hbox, False, False, 0)
         self.m_statistics = statistics
-        self.g_tables = Gtk.VBox(False, 0)
+        self.g_tables = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         self.g_tables.show()
         self.vbox.pack_start(self.g_tables, True, True, 0)
         self.show_all()
@@ -273,7 +276,7 @@ class StatisticsViewer(Gtk.ScrolledWindow):
     def create_matrices_expander(self):
         expander = Gtk.Expander()
         expander.connect_after('activate', self.on_expander_activate)
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         expander.add(vbox)
         if self.m_statistics.m_t.m_P.header.statistics_matrices == 'enabled':
             expander.set_expanded(True)
@@ -301,7 +304,7 @@ class StatisticsViewer(Gtk.ScrolledWindow):
         # for c in self.g_tables.children():
         #    c.destroy()
         self.g_tables.destroy()
-        self.g_tables = Gtk.VBox(False, 0)
+        self.g_tables = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         self.g_tables.set_spacing(gu.hig.SPACE_LARGE)
         self.g_tables.show()
         self.vbox.pack_start(self.g_tables, True, True, 0)

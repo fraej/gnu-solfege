@@ -16,7 +16,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import codecs
 import glob
 import logging
 import os
@@ -280,9 +279,8 @@ class FileHeader(_TreeCommon):
         save_location = os.path.split(filename)[0] + os.sep
         self.foreach_file(mk_rel, save_location)
         assert filename
-        f = codecs.open(filename, 'w', 'utf-8')
-        self.dump(f)
-        f.close()
+        with open(filename, 'w', encoding='utf-8') as f:
+            self.dump(f)
         self.foreach_file(mk_abs, save_location)
 
 
@@ -293,7 +291,7 @@ def may_be_frontpage(filename):
     locking the program at startup if someone places a very large file
     in the directory where front page files is supposed to be.
     """
-    with codecs.open(filename, "r", 'utf-8', 'replace') as f:
+    with open(filename, "r", encoding='utf-8', errors='replace') as f:
         s = f.readline().strip()
         while s:
             if s.startswith("#"):
@@ -351,7 +349,7 @@ def parse_tree(s, C_locale=False):
 
 
 def load_tree(fn, C_locale=False):
-    with codecs.open(fn, "r", 'utf-8', 'replace') as f:
+    with open(fn, "r", encoding='utf-8', errors='replace') as f:
         ret = parse_tree(f.read(), C_locale)
     # We store all files by absolute filename or solfege: uri internally
     ret.foreach_file(mk_abs, os.path.split(fn)[0] + os.sep)

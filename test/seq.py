@@ -1,11 +1,11 @@
-#!/usr/bin/python2.3
+#!/usr/bin/python3
 
 import sys, os
-if os.getcwdu()[-4:] == "test":
+if os.getcwd()[-4:] == "test":
     sys.path.insert(0, "..")
 else:
     sys.path.insert(0, ".")
-import soundcard
+from solfege import soundcard
 soundcard.initialise_devicefile("/dev/sequencer2", 2)
 
 s = soundcard.solfege_c_midi
@@ -37,6 +37,6 @@ for i in range(500):
 s.seqbuf_dump()
 
 import sys
-print "press ENTER to continue"
+print("press ENTER to continue")
 sys.stdin.readline()
 soundcard.synth.close()

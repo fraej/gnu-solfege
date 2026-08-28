@@ -26,6 +26,13 @@ builtins.__dict__['start_time'] = time.time()
 import sys
 import os
 
+# Plasma can advertise the appmenu registrar without a Global Menu widget.
+# In that setup appmenu-gtk-module can hide Solfege's in-window menubar but
+# has nowhere visible to display it. Prefer the in-window menu on KDE unless
+# the user explicitly enables menu proxying.
+if "KDE" in os.environ.get("XDG_CURRENT_DESKTOP", "").upper():
+    os.environ.setdefault("UBUNTU_MENUPROXY", "0")
+
 prefix =  os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))[0]
 if sys.platform == 'win32':
     s = os.path.normpath(prefix)
@@ -56,4 +63,4 @@ from solfege import i18n
 i18n.setup(prefix, cfg.get_string("app/lc_messages"))
 
 import solfege.startup
-solfege.startup.start_app(os.path.join(prefix, "share", "solfege"))
+sys.exit(solfege.startup.start_app(os.path.join(prefix, "share", "solfege")))

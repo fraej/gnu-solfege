@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import pprint
 import sys
@@ -10,7 +10,7 @@ import subprocess
 
 import depgraph2dot
 
-solfege_modules = ('solfege')
+solfege_modules = ('solfege',)
 # The keys of this dict is the module names.
 # The values are the module names, for example solfege.application.SolfegeApp
 deps = {}
@@ -93,8 +93,9 @@ def test_name_of_imported():
 
 
 def usage_of_module(info):
-    f = open(info.m_filename, 'rU')
-    for line in f.readlines():
+    with open(info.m_filename, encoding='utf-8') as f:
+        lines = f.readlines()
+    for line in lines:
         line = line.strip("\n")
         if line.startswith('from __future__'):
             continue
@@ -138,7 +139,7 @@ def usage_of_module(info):
                     raise Exception("Not implemented yet")
                     deps[info.m_modulename].m_usage.add(name_of_imported(info, m.group('module')))
                 continue
-            print "line::::", line
+            print("line::::", line)
 
 
 def do_file(fn):
@@ -183,7 +184,7 @@ def replace_modules(to_module, remove_modules):
     to_module is the name of the a module
     remove_modules is a list of names
     """
-    for k in deps.keys():
+    for k in list(deps):
         for ex in remove_modules:
             if k == ex:
                 for dep in deps[k].m_usage:
@@ -191,7 +192,7 @@ def replace_modules(to_module, remove_modules):
                         deps[to_module].m_usage.add(dep)
     for ex in remove_modules:
         del deps[ex]
-    for k in deps.keys():
+    for k in list(deps):
         for ex in remove_modules:
             if ex in deps[k].m_usage:
                 deps[k].m_usage.remove(ex)

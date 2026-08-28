@@ -71,5 +71,5 @@ class TestClefs(unittest.TestCase):
         self.assertEqual(mpd.select_clef("bes des'"), "bass")
         self.assertEqual(mpd.select_clef("ces' cisis'"), "violin")
 
-suite = unittest.makeSuite(TestClefs)
-suite.addTest(unittest.makeSuite(TestMisc))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClefs)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMisc))

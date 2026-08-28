@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # GNU Solfege - free ear training software
 # Copyright (C) 2004, 2005, 2006, 2011, 2016  Tom Cato Amundsen
 #
@@ -28,23 +28,19 @@ The included files are un-touched.
 
 """
 
-print "The lessonfile editor is broken now."
-# We use this variable because debian/rules will replace it when
-# building the debian package.
-solfege_version = buildinfo.VERSION_STRING
-
 import os
 import sys
-prefix = os.path.split(os.path.dirname(os.path.abspath(sys.argv[0])))[0]
 
-if sys.argv[0] == './lessonfile_editor.py':
-        datadir = "."
-else:
-    datadir = os.path.join("@prefix@", "share", "solfege")
-    sys.path.append(datadir)
+datadir = os.path.dirname(os.path.abspath(__file__))
+os.chdir(datadir)
+sys.path.insert(0, datadir)
 
-import src.i18n
-src.i18n.setup(prefix)
+from solfege import cfg, filesystem, i18n, presetup
 
-import src.lessonfile_editor_main
-src.lessonfile_editor_main.main(datadir)
+presetup.presetup(os.path.join(datadir, "default.config"), None,
+                  filesystem.rcfile())
+i18n.setup(datadir, cfg.get_string("app/lc_messages"))
+
+from solfege import lessonfile_editor_main
+
+sys.exit(lessonfile_editor_main.main(datadir))

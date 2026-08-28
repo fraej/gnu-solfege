@@ -122,11 +122,11 @@ class Gui(abstract.Gui):
         self.m_buttons = []
         vbox = gu.bVBox(self.practise_box, False)
         for s, e in ((0, 9), (9, 18), (18, 26), (26, 34)):
-            box = Gtk.HBox()
+            box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
             vbox.pack_start(box, True, True, 0)
             for i in range(s, e):
                 bpm = self.m_t.m_bpms[i]
-                button = Gtk.Button(str(bpm))
+                button = Gtk.Button(label=str(bpm))
                 box.pack_start(button, True, True, 0)
                 button.connect('clicked', self.on_click)
                 button.connect('button-release-event', self.on_event)

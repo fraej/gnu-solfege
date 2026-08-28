@@ -267,7 +267,7 @@ class IntervalButtonsWidgetBase(Gtk.Grid, cfg.ConfigUtils):
         # does not know if you mean interval up or down when you click
         # the buttons
         txt = mpd.Interval.new_from_int(nr).get_name()
-        self.m_buttons[nr] = b = Gtk.Button(txt)
+        self.m_buttons[nr] = b = Gtk.Button(label=txt)
         b.connect('clicked',
                   lambda s, nr=nr, self=self: self.m_callback(1, nr, None))
         b.connect('button-press-event', self._abc, nr)
@@ -321,7 +321,7 @@ class IntervalButtonsWidget(IntervalButtonsWidgetBase):
                 (0, 1), (1, 1), (2, 1), (3, 1),
                 (0, 2), (1, 2), (2, 2), (3, 2))):
             g1.attach(self.mk_button(i + 1), x, y, 1, 1)
-        spacing = Gtk.Label("")
+        spacing = Gtk.Label(label="")
         spacing.show()
         g1.attach(spacing, 0, 3, 1, 1)
         for i, (x, y) in enumerate((

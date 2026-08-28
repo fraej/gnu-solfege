@@ -90,11 +90,11 @@ class Gui(abstract.LessonbasedGui):
         ################
         # practise_box #
         ################
-        self.g_contents = Gtk.Table()
+        self.g_contents = gu.LegacyGrid()
         hbox = gu.bHBox(self.practise_box, True, False)
-        hbox.pack_start(Gtk.HBox(), True, True, 0)
+        hbox.pack_start(Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL), True, True, 0)
         hbox.pack_start(self.g_contents, True, True, 0)
-        hbox.pack_start(Gtk.HBox(), True, True, 0)
+        hbox.pack_start(Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL), True, True, 0)
         self.g_contents.set_col_spacings(gu.PAD)
         self.g_contents.set_row_spacings(gu.PAD)
 
@@ -157,7 +157,7 @@ class Gui(abstract.LessonbasedGui):
             self.g_atable.destroy()
         except AttributeError:
             pass
-        self.g_atable = Gtk.Table()
+        self.g_atable = gu.LegacyGrid()
         self.g_atable.show()
         if self.m_t.m_P.header.layout_orientation == 'horiz':
             self.g_contents.attach(self.g_atable, 1, 2, 2, 3)
@@ -179,7 +179,7 @@ class Gui(abstract.LessonbasedGui):
         # Then we create the buttons used to answer.
         for x, prop in enumerate(self.m_t.m_P.header.qprops):
             for y, proplabel in enumerate(self.m_t.m_P.m_props[prop]):
-                button = Gtk.Button(str(proplabel))
+                button = Gtk.Button(label=str(proplabel))
                 button.m_property_name = prop
                 button.m_property_value = proplabel.cval
                 button.connect('clicked', self.on_prop_button_clicked)
@@ -188,12 +188,12 @@ class Gui(abstract.LessonbasedGui):
                     xpadding=gu.PAD_SMALL,
                     yoptions=Gtk.AttachOptions.SHRINK)
         # The separator below the column headings
-        self.g_atable.attach(Gtk.HSeparator(), 0, tcols, 1, 2,
+        self.g_atable.attach(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), 0, tcols, 1, 2,
             xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL,
             xpadding=0, ypadding=gu.PAD_SMALL)
         # The vertical separator between columns
         for idx in range(len(self.m_t.m_P.header.qprops) - 1):
-            self.g_atable.attach(Gtk.VSeparator(),
+            self.g_atable.attach(Gtk.Separator(orientation=Gtk.Orientation.VERTICAL),
             idx * 2 + 1, idx * 2 + 2, 0, trows,
             xoptions=Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.FILL,
             xpadding=0, ypadding=gu.PAD_SMALL)

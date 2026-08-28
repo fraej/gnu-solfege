@@ -76,7 +76,6 @@ True
 True
 """
 
-import codecs
 import logging
 import os
 import re
@@ -103,7 +102,7 @@ def split(key):
 
 
 def parse_file_into_dict(dictionary, filename):
-    with codecs.open(filename, "r", "utf-8") as f:
+    with open(filename, "r", encoding="utf-8") as f:
         section = None
         for lineno, line in enumerate(f):
             line = line.strip()
@@ -288,13 +287,12 @@ def del_section(section):
 
 
 def dump(datadict, fn):
-    f = codecs.open(fn, 'w', 'utf-8')
-    for section in sorted(datadict):
-        f.write("[%s]\n" % section)
-        for name in sorted(datadict[section]):
-            f.write("%s=%s\n" % (name, datadict[section][name]))
-        f.write("\n")
-    f.close()
+    with open(fn, 'w', encoding='utf-8') as f:
+        for section in sorted(datadict):
+            f.write("[%s]\n" % section)
+            for name in sorted(datadict[section]):
+                f.write("%s=%s\n" % (name, datadict[section][name]))
+            f.write("\n")
 
 
 def drop_user_config():

@@ -20,7 +20,7 @@ import os
 import sys
 
 import gi
-pyGtk.require("2.0")
+gi.require_version("Gtk", "3.0")
 from gi.repository import Gtk
 
 from solfege import mpd
@@ -28,15 +28,8 @@ from solfege import gu
 from solfege import lessonfile
 from solfege import dataparser
 from solfege import stock
+from solfege.mpd import engravers, musicdisplayer
 
-Gtk.stock_add([('solfege-notehead', _("Add noteheads"), 0, 0, ''),
-               ('solfege-sharp', _("Add sharps"), 0, 0, ''),
-               ('solfege-double-sharp', _("Add double-sharps"), 0, 0, ''),
-               ('solfege-natural', _("Remove accidentals"), 0, 0, ''),
-               ('solfege-flat', _("Add flats"), 0, 0, ''),
-               ('solfege-double-flat', _("Add double-flats"), 0, 0, ''),
-               ('solfege-erase', _("Delete tones"), 0, 0, ''),
-               ])
 app_version = "0.1.4"
 
 
@@ -47,24 +40,26 @@ class HelpWindow(Gtk.Window):
         self.set_title(_("GNU Solfege lesson file editor"))
         self.set_default_size(400, 400)
         self.g_parent = parent
-        self.vbox = Gtk.VBox()
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.vbox.set_spacing(8)
         self.add(self.vbox)
         self.connect('delete_event', self.delete_cb)
-        self.g_htmlwidget = htmlwidget.HtmlWidget(None, None)
+        self.g_htmlwidget = Gtk.TextView(editable=False, cursor_visible=False,
+                                         wrap_mode=Gtk.WrapMode.WORD)
         self.vbox.pack_start(self.g_htmlwidget, True, True, 0)
-        self.vbox.pack_start(Gtk.HSeparator(), False)
-        bbox = Gtk.HButtonBox()
+        self.vbox.pack_start(
+            Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+        bbox = Gtk.ButtonBox(orientation=Gtk.Orientation.HORIZONTAL)
         bbox.set_border_width(8)
-        self.vbox.pack_start(bbox, False)
-        b = Gtk.Button(stock=Gtk.STOCK_CLOSE)
+        self.vbox.pack_start(bbox, False, False, 0)
+        b = Gtk.Button.new_with_mnemonic(_("_Close"))
         b.connect('clicked', self.close_cb)
         bbox.pack_start(b, True, True, 0)
         self.show_all()
         self.set_focus(b)
 
     def source(self, html):
-        self.g_htmlwidget.source(html)
+        self.g_htmlwidget.get_buffer().set_text(html)
 
     def delete_cb(self, *v):
         self.g_parent.g_help_window = None
@@ -76,39 +71,39 @@ class HelpWindow(Gtk.Window):
 
 window_actions = [
     ('FileMenu', None, _('_File')),
-    ('NewLessonfile', Gtk.STOCK_NEW, None, None, 'new file', 'file_new_cb'),
-    ('Open', Gtk.STOCK_OPEN, None, None, 'Open lesson file', 'file_open_cb'),
-    ('Save', Gtk.STOCK_SAVE, None, None, 'Save the lesson file', 'file_save_cb'),
-    ('SaveAs', Gtk.STOCK_SAVE_AS, None, '<shift><ctrl>s', 'Save the lesson file with a new name', 'file_save_as_cb'),
-    ('Quit', Gtk.STOCK_QUIT, None, None, 'Quit program', 'quit_cb'),
+    ('NewLessonfile', None, _('_New'), '<ctrl>N', 'new file', 'file_new_cb'),
+    ('Open', None, _('_Open'), '<ctrl>O', 'Open lesson file', 'file_open_cb'),
+    ('Save', None, _('_Save'), '<ctrl>S', 'Save the lesson file', 'file_save_cb'),
+    ('SaveAs', None, _('Save _As…'), '<shift><ctrl>S', 'Save the lesson file with a new name', 'file_save_as_cb'),
+    ('Quit', None, _('_Quit'), '<ctrl>Q', 'Quit program', 'quit_cb'),
     ('HelpMenu', None, _('_Help')),
-    ('HelpHelp', Gtk.STOCK_HELP, None, None, None, 'help_cb'),
+    ('HelpHelp', None, _('_Help'), 'F1', None, 'help_cb'),
     ('HelpAbout', None, _('_About'), '', '', 'about_cb'),
 ]
 lessonfile_actions = [
-    ('GotoFirstQuestion', Gtk.STOCK_GOTO_FIRST, None, None,
+    ('GotoFirstQuestion', None, _('First question'), None,
      _('Go to the first question'), 'goto_first_question_cb'),
-    ('GoBackQuestion', Gtk.STOCK_GO_BACK, None, None,
+    ('GoBackQuestion', None, _('Previous question'), None,
      _('Go to the previous question'), 'go_back_question_cb'),
-    ('GoForwardQuestion', Gtk.STOCK_GO_FORWARD, None, None,
+    ('GoForwardQuestion', None, _('Next question'), None,
      _('Go to the next question'), 'go_forward_question_cb'),
-    ('GotoLastQuestion', Gtk.STOCK_GOTO_LAST, None, None,
+    ('GotoLastQuestion', None, _('Last question'), None,
      _('Go to the last question'), 'goto_last_question_cb'),
-    ('NewQuestion', Gtk.STOCK_ADD, None, None,
+    ('NewQuestion', None, _('New question'), None,
      _('Add a new question'), 'new_question_cb'),
-    ('NoteheadCursor', 'solfege-notehead', None, None,
+    ('NoteheadCursor', None, _("Noteheads"), None,
      _('Add noteheads'), 'select_cursor_notehead_cb'),
-    ('SharpCursor', 'solfege-sharp', None, None,
+    ('SharpCursor', None, _("Sharps"), None,
      _('Add sharps'), 'select_cursor_sharp_cb'),
-    ('DoubleSharpCursor', 'solfege-double-sharp', None, None,
+    ('DoubleSharpCursor', None, _("Double sharps"), None,
      _('Add double-sharps'), 'select_cursor_2sharp_cb'),
-    ('NaturalCursor', 'solfege-natural', None, None,
+    ('NaturalCursor', None, _("Naturals"), None,
      _('Remove accidentals'), 'select_cursor_natural_cb'),
-    ('FlatCursor', 'solfege-flat', None, None,
+    ('FlatCursor', None, _("Flats"), None,
      _('Add flats'), 'select_cursor_flat_cb'),
-    ('DoubleFlatCursor', 'solfege-double-flat', None, None,
+    ('DoubleFlatCursor', None, _("Double flats"), None,
      _('Add double-flats'), 'select_cursor_2flat_cb'),
-    ('EraseCursor', 'solfege-erase', None, None,
+    ('EraseCursor', None, _("Erase"), None,
      _('Delete tones'), 'select_cursor_erase_cb'),
 ]
 ui_string = """<ui>
@@ -164,29 +159,28 @@ class EditorLessonfile(object):
         self.m_changed = False
         self.header = lessonfile._Header({'module': 'chord'})
         self.m_questions = [dataparser.Question()]
-        self.m_questions[-1].music = lessonfile.Music("", "chord")
+        self.m_questions[-1].music = lessonfile.Music("")
         self.m_questions[-1].name = ""
         self._idx = 0
 
 
-class MainWin(Gtk.Window):
+class MainWin(Gtk.ApplicationWindow):
 
-    def __init__(self, datadir):
-        Gtk.Window.__init__(self)
+    def __init__(self, application, datadir):
+        Gtk.ApplicationWindow.__init__(self, application=application)
         self.icons = stock.EditorIconFactory(self, datadir)
-        self.connect('destroy', lambda w: Gtk.main_quit())
         self.g_help_window = None
         # toplevel_vbox:
         #   -menubar
         #   -toolbar
         #   -notebook
         #   -statusbar
-        self.toplevel_vbox = Gtk.VBox()
+        self.toplevel_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.toplevel_vbox)
         self.create_menu_and_toolbar()
         self.g_notebook = Gtk.Notebook()
         self.toplevel_vbox.pack_start(self.g_notebook, True, True, 0)
-        self.vbox = Gtk.VBox()
+        self.vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.toplevel_vbox.pack_start(self.vbox, True, True, 0)
         self.create_mainwin_ui()
         self.show_all()
@@ -196,38 +190,46 @@ class MainWin(Gtk.Window):
         self.g_notebook.append_page(qbox, Gtk.Label(label=_("Questions")))
         gu.bLabel(qbox, _("Enter new chords using the mouse"), False, False)
         hbox = gu.bHBox(qbox, False, False)
-        self.g_displayer = mpd.musicdisplayer.ChordEditor()
+        self.g_displayer = musicdisplayer.ChordEditor()
         self.g_displayer.connect('clicked', self.on_displayer_clicked)
         self.g_displayer.clear(2)
         gu.bLabel(hbox, "")
-        hbox.pack_start(self.g_displayer, False)
+        hbox.pack_start(self.g_displayer, False, False, 0)
         gu.bLabel(hbox, "")
         ##
         self.g_question_name = Gtk.Entry()
-        qbox.pack_start(gu.hig_label_widget(_("Question title:", True, True, 0), self.g_question_name, None), False)
+        qbox.pack_start(
+            gu.hig_label_widget(_("Question title:"), self.g_question_name, None),
+            False, False, 0)
         self.g_navinfo = Gtk.Label(label="")
-        qbox.pack_start(self.g_navinfo, False)
+        qbox.pack_start(self.g_navinfo, False, False, 0)
 
         ##
         self.m_P = EditorLessonfile()
-        cvbox = Gtk.VBox()
+        cvbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_notebook.append_page(cvbox, Gtk.Label(label=_("Lessonfile header")))
         # Header section
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.g_title = Gtk.Entry()
-        cvbox.pack_start(gu.hig_label_widget(_("File title:", True, True, 0), self.g_title,
-                        sizegroup))
-        self.g_content_chord = Gtk.RadioButton(None, "chord")
-        self.g_content_chord_voicing = Gtk.RadioButton(self.g_content_chord, "chord-voicing")
-        self.g_content_idbyname = Gtk.RadioButton(self.g_content_chord, "id-by-name")
-        box = Gtk.HBox()
+        cvbox.pack_start(
+            gu.hig_label_widget(_("File title:"), self.g_title, sizegroup),
+            True, True, 0)
+        self.g_content_chord = Gtk.RadioButton.new_with_label(None, "chord")
+        self.g_content_chord_voicing = Gtk.RadioButton.new_with_label_from_widget(
+            self.g_content_chord, "chord-voicing")
+        self.g_content_idbyname = Gtk.RadioButton.new_with_label_from_widget(
+            self.g_content_chord, "id-by-name")
+        box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         box.pack_start(self.g_content_chord, True, True, 0)
         box.pack_start(self.g_content_chord_voicing, True, True, 0)
         box.pack_start(self.g_content_idbyname, True, True, 0)
-        cvbox.pack_start(gu.hig_label_widget(_("Content:", True, True, 0), box, sizegroup))
+        cvbox.pack_start(
+            gu.hig_label_widget(_("Content:"), box, sizegroup), True, True, 0)
         self.g_random_transpose = Gtk.Entry()
-        cvbox.pack_start(gu.hig_label_widget(_("Random transpose:", True, True, 0),
-            self.g_random_transpose, sizegroup))
+        cvbox.pack_start(
+            gu.hig_label_widget(
+                _("Random transpose:"), self.g_random_transpose, sizegroup),
+            True, True, 0)
         #
         #self.g_statusbar = Gtk.Statusbar()
         #self.toplevel_vbox.pack_start(self.g_statusbar, False)
@@ -273,7 +275,7 @@ class MainWin(Gtk.Window):
         else:
             # Do a little trick to make an empty question
             self.m_P.m_questions = [dataparser.Question()]
-            self.m_P.m_questions[-1].music = lessonfile.Music("", "chord")
+            self.m_P.m_questions[-1].music = lessonfile.Music("")
             self.m_P.m_questions[-1].name = ""
             self.m_P._idx = 0
 
@@ -287,10 +289,11 @@ class MainWin(Gtk.Window):
         self.update_appwin()
 
     def file_open_cb(self, *v):
-        dialog = Gtk.FileChooserDialog(_("Open..."), self,
-                                   Gtk.FileChooserAction.OPEN,
-                                   (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                    Gtk.STOCK_OPEN, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(
+            title=_("Open..."), transient_for=self,
+            action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                           _("_Open"), Gtk.ResponseType.OK)
         dialog.set_default_response(Gtk.ResponseType.OK)
         if dialog.run() == Gtk.ResponseType.OK:
             filename = dialog.get_filename()
@@ -316,10 +319,11 @@ class MainWin(Gtk.Window):
 
     def file_save_as_cb(self, *v):
         self.store_data_from_ui()
-        dialog = Gtk.FileChooserDialog(_("Save as..."), self,
-                                  Gtk.FileChooserAction.SAVE,
-                                   (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                    Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(
+            title=_("Save as..."), transient_for=self,
+            action=Gtk.FileChooserAction.SAVE)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                           _("_Save"), Gtk.ResponseType.OK)
         dialog.set_default_response(Gtk.ResponseType.OK)
 
         if dialog.run() == Gtk.ResponseType.OK:
@@ -330,10 +334,11 @@ class MainWin(Gtk.Window):
     def file_save_cb(self, *v):
         self.store_data_from_ui()
         if self.m_P.m_filename is None:
-            dialog = Gtk.FileChooserDialog(_("Save..."), self,
-                                   Gtk.FileChooserAction.SAVE,
-                                   (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                                    Gtk.STOCK_SAVE, Gtk.ResponseType.OK))
+            dialog = Gtk.FileChooserDialog(
+                title=_("Save..."), transient_for=self,
+                action=Gtk.FileChooserAction.SAVE)
+            dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                               _("_Save"), Gtk.ResponseType.OK)
             dialog.set_default_response(Gtk.ResponseType.OK)
 
             if dialog.run() == Gtk.ResponseType.OK:
@@ -368,7 +373,7 @@ class MainWin(Gtk.Window):
 
     def quit_cb(self, *v):
         if self.proceed_if_changed():
-            Gtk.main_quit()
+            self.get_application().quit()
 
     def help_cb(self, *v):
         if not self.g_help_window:
@@ -417,7 +422,7 @@ edit your hand written lesson files with this program.</p>
     def new_question_cb(self, *v):
         self.store_data_from_ui()
         self.m_P.m_questions.append(dataparser.Question())
-        self.m_P.m_questions[-1].music = lessonfile.Music("", "chord")
+        self.m_P.m_questions[-1].music = lessonfile.Music("")
         self.m_P.m_questions[-1].name = ""
         self.m_P._idx = len(self.m_P.m_questions) - 1
         self.update_appwin()
@@ -458,9 +463,9 @@ edit your hand written lesson files with this program.</p>
             s = ""
             for n in list(self.m_chord_tones.values()):
                 s += " " + n.get_octave_notename()
-            self.g_displayer.display("\staff{ < %s >}\staff{\clef bass}" % s, "20-tight")
+            self.g_displayer.display("\\staff{ < %s >}\\staff{\\clef bass}" % s, 20)
         else:
-            self.g_displayer.display("\staff{ }\staff{\clef bass}", "20-tight")
+            self.g_displayer.display("\\staff{ }\\staff{\\clef bass}", 20)
         self.g_displayer.set_size_request(400, -1)
 
     def store_data_from_ui(self):
@@ -497,31 +502,108 @@ edit your hand written lesson files with this program.</p>
         self.update_score()
 
 
-class UIManagerMainWin(MainWin):
+class EditorMainWin(MainWin):
 
-    def __init__(self, datadir):
-        MainWin.__init__(self, datadir)
+    def __init__(self, application, datadir):
+        MainWin.__init__(self, application, datadir)
 
     def create_menu_and_toolbar(self):
-        self.window_ag = Gtk.ActionGroup('WindowActions')
-        self.lessonfile_ag = Gtk.ActionGroup('LessonfileActions')
+        accel_group = Gtk.AccelGroup()
+        self.add_accel_group(accel_group)
+        menubar = Gtk.MenuBar()
+        file_item = Gtk.MenuItem.new_with_mnemonic(_('_File'))
+        file_menu = Gtk.Menu()
+        file_item.set_submenu(file_menu)
+        menubar.append(file_item)
+        for label, accelerator, callback in (
+                (_('_New'), '<ctrl>N', self.file_new_cb),
+                (_('_Open'), '<ctrl>O', self.file_open_cb),
+                (_('_Save'), '<ctrl>S', self.file_save_cb),
+                (_('Save _As…'), '<shift><ctrl>S', self.file_save_as_cb)):
+            self._add_menu_item(file_menu, label, callback, accelerator,
+                                accel_group)
+        file_menu.append(Gtk.SeparatorMenuItem())
+        self._add_menu_item(file_menu, _('_Quit'), self.quit_cb, '<ctrl>Q',
+                            accel_group)
 
-        self.window_ag.add_actions(fix_actions(window_actions, self))
-        self.lessonfile_ag.add_actions(fix_actions(lessonfile_actions, self))
-        self.ui = Gtk.UIManager()
-        self.ui.insert_action_group(self.window_ag, 0)
-        self.ui.insert_action_group(self.lessonfile_ag, 1)
-        self.ui.add_ui_from_string(ui_string)
-        self.add_accel_group(self.ui.get_accel_group())
-        self.toplevel_vbox.pack_start(self.ui.get_widget('/Menubar', True, True, 0), False)
-        self.ui.get_widget('/Toolbar').set_style(Gtk.TOOLBAR_ICONS)
-        self.toplevel_vbox.pack_start(self.ui.get_widget('/Toolbar', True, True, 0), False)
+        help_item = Gtk.MenuItem.new_with_mnemonic(_('_Help'))
+        help_menu = Gtk.Menu()
+        help_item.set_submenu(help_menu)
+        menubar.append(help_item)
+        self._add_menu_item(help_menu, _('_Help'), self.help_cb, 'F1',
+                            accel_group)
+        self._add_menu_item(help_menu, _('_About'), self.about_cb, None,
+                            accel_group)
+        self.toplevel_vbox.pack_start(menubar, False, False, 0)
+
+        toolbar = Gtk.Toolbar()
+        toolbar.set_show_arrow(False)
+        toolbar.set_style(Gtk.ToolbarStyle.ICONS)
+        for label, icon_name, callback in (
+                (_('First question'), 'go-first-symbolic',
+                 self.goto_first_question_cb),
+                (_('Previous question'), 'go-previous-symbolic',
+                 self.go_back_question_cb),
+                (_('Next question'), 'go-next-symbolic',
+                 self.go_forward_question_cb),
+                (_('Last question'), 'go-last-symbolic',
+                 self.goto_last_question_cb),
+                (_('New question'), 'list-add-symbolic',
+                 self.new_question_cb)):
+            image = Gtk.Image.new_from_icon_name(
+                icon_name, Gtk.IconSize.LARGE_TOOLBAR)
+            button = Gtk.ToolButton.new(image, label)
+            button.set_tooltip_text(label)
+            button.connect('clicked', callback)
+            toolbar.insert(button, -1)
+        toolbar.insert(Gtk.SeparatorToolItem(), -1)
+        for label, icon_id, callback in (
+                (_('Add noteheads'), 'solfege-notehead',
+                 self.select_cursor_notehead_cb),
+                (_('Add double-sharps'), 'solfege-double-sharp',
+                 self.select_cursor_2sharp_cb),
+                (_('Add sharps'), 'solfege-sharp',
+                 self.select_cursor_sharp_cb),
+                (_('Remove accidentals'), 'solfege-natural',
+                 self.select_cursor_natural_cb),
+                (_('Add flats'), 'solfege-flat',
+                 self.select_cursor_flat_cb),
+                (_('Add double-flats'), 'solfege-double-flat',
+                 self.select_cursor_2flat_cb),
+                (_('Delete tones'), 'solfege-erase',
+                 self.select_cursor_erase_cb)):
+            button = Gtk.ToolButton.new(
+                self.icons.new_image(icon_id, Gtk.IconSize.LARGE_TOOLBAR),
+                label)
+            button.set_tooltip_text(label)
+            button.connect('clicked', callback)
+            toolbar.insert(button, -1)
+        self.toplevel_vbox.pack_start(toolbar, False, False, 0)
+
+    @staticmethod
+    def _add_menu_item(menu, label, callback, accelerator, accel_group):
+        item = Gtk.MenuItem.new_with_mnemonic(label)
+        item.connect('activate', callback)
+        if accelerator:
+            key, modifiers = Gtk.accelerator_parse(accelerator)
+            item.add_accelerator('activate', accel_group, key, modifiers,
+                                 Gtk.AccelFlags.VISIBLE)
+        menu.append(item)
 
 
 def main(datadir):
-    mpd.engravers.fetadir = os.path.join(datadir, "feta")
-    w = UIManagerMainWin(datadir)
-    if len(sys.argv) == 2:
-        w.load_file(sys.argv[1])
-    w.show()
-    Gtk.main()
+    engravers.fetadir = os.path.join(datadir, "feta")
+    application = Gtk.Application(
+        application_id="org.gnu.solfege.LessonfileEditor")
+
+    def activate(app):
+        if app.get_active_window():
+            app.get_active_window().present()
+            return
+        window = EditorMainWin(app, datadir)
+        if len(sys.argv) == 2:
+            window.load_file(sys.argv[1])
+        window.show()
+
+    application.connect('activate', activate)
+    return application.run([sys.argv[0]])

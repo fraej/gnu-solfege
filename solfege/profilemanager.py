@@ -29,14 +29,15 @@ from solfege import gu
 class NewProfileDialog(Gtk.Dialog):
 
     def __init__(self):
-        Gtk.Dialog.__init__(self, _("_Create profile\u2026").replace("\u2026", "").replace("_", ""))
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                         Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+        Gtk.Dialog.__init__(self, title=_("_Create profile\u2026").replace(
+            "\u2026", "").replace("_", ""))
+        self.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                         _("_OK"), Gtk.ResponseType.ACCEPT)
         vbox = gu.hig_dlg_vbox()
         self.vbox.pack_start(vbox, True, True, 0)
         #
         label = Gtk.Label(label=_("Enter the name of the new folder:"))
-        label.set_alignment(0.0, 0.5)
+        label.set_xalign(0.0)
         vbox.pack_start(label, False, False, 0)
         #
         self.g_entry = Gtk.Entry()
@@ -45,17 +46,17 @@ class NewProfileDialog(Gtk.Dialog):
         vbox.pack_start(self.g_entry, False, False, 0)
         #
         label = Gtk.Label(label=_("Your profile data will be stored in:"))
-        label.set_alignment(0.0, 0.5)
+        label.set_xalign(0.0)
         vbox.pack_start(label, False, False, 0)
         #
         self.g_profile_location = Gtk.Label()
         vbox.pack_start(self.g_profile_location, False, False, 0)
         #
-        self.g_statusbox = Gtk.HBox()
+        self.g_statusbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_statusbox.set_no_show_all(True)
         vbox.pack_start(self.g_statusbox, False, False, 0)
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_DIALOG_WARNING, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("dialog-warning-symbolic",
+                                          Gtk.IconSize.MENU)
         self.g_statusbox.pack_start(im, False, False, 0)
         im.show()
 
@@ -82,14 +83,15 @@ class NewProfileDialog(Gtk.Dialog):
 class RenameProfileDialog(Gtk.Dialog):
 
     def __init__(self, oldname):
-        Gtk.Dialog.__init__(self, _("_Rename profile\u2026").replace("_", "").replace("\u2026", ""))
-        self.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-                        Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
+        Gtk.Dialog.__init__(self, title=_("_Rename profile\u2026").replace(
+            "_", "").replace("\u2026", ""))
+        self.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                         _("_OK"), Gtk.ResponseType.ACCEPT)
         vbox = gu.hig_dlg_vbox()
         self.vbox.pack_start(vbox, True, True, 0)
 
         label = Gtk.Label(label=_("Rename the profile «%s» to:") % oldname)
-        label.set_alignment(0.0, 0.5)
+        label.set_xalign(0.0)
         vbox.pack_start(label, False, False, 0)
 
         self.g_entry = Gtk.Entry()
@@ -122,8 +124,9 @@ class RenameProfileDialog(Gtk.Dialog):
 class ProfileManagerBase(Gtk.Dialog):
 
     def __init__(self, parent, default_profile):
-        Gtk.Dialog.__init__(self, _("GNU Solfege - Choose User Profile"),
-                            parent)
+        Gtk.Dialog.__init__(self,
+                            title=_("GNU Solfege - Choose User Profile"),
+                            transient_for=parent)
         # Set a small size, and let the widgets expand the dialog
         self.set_default_size(100, 100)
         # We save the initially selected profile, because we need to keep
@@ -131,15 +134,15 @@ class ProfileManagerBase(Gtk.Dialog):
         self.m_default_profile = default_profile
         vbox = gu.hig_dlg_vbox()
         self.get_content_area().pack_start(vbox, False, False, 0)
-        l = Gtk.Label(_("Solfege will save your statistics and test results in the user profile. By adding additional user profiles to Solfege, multiple users can share a user account on the operating system."))
-        l.set_alignment(0.0, 0.5)
+        l = Gtk.Label(label=_("Solfege will save your statistics and test results in the user profile. By adding additional user profiles to Solfege, multiple users can share a user account on the operating system."))
+        l.set_xalign(0.0)
         l.set_line_wrap(True)
         vbox.pack_start(l, True, True, 0)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(gu.hig.SPACE_MEDIUM)
         vbox.pack_start(hbox, True, True, 0)
-        button_box = Gtk.VBox()
+        button_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
 
         self.g_create_profile = Gtk.Button.new_with_mnemonic(_("_Create profile\u2026"))
         self.g_create_profile.connect('clicked', self.on_create_profile)
@@ -161,7 +164,7 @@ class ProfileManagerBase(Gtk.Dialog):
                 'profiles')):
                 liststore.append((subdir,))
         #
-        self.g_tw = tw = Gtk.TreeView(liststore)
+        self.g_tw = tw = Gtk.TreeView(model=liststore)
         tw.connect('row-activated', lambda a, b, c: self.response(Gtk.ResponseType.ACCEPT))
         tw.set_headers_visible(False)
         renderer = Gtk.CellRendererText()
@@ -257,7 +260,7 @@ class ProfileManager(ProfileManagerBase):
 
     def __init__(self, parent, default_profile):
         ProfileManagerBase.__init__(self, parent, default_profile)
-        self.add_button(Gtk.STOCK_QUIT, Gtk.ResponseType.CLOSE)
+        self.add_button(_("_Quit"), Gtk.ResponseType.CLOSE)
         b = self.add_button(_("_Start GNU Solfege"), Gtk.ResponseType.ACCEPT)
         b.grab_focus()
         self.set_default_response(Gtk.ResponseType.ACCEPT)
@@ -267,4 +270,4 @@ class ChangeProfileDialog(ProfileManagerBase):
 
     def __init__(self, parent, default_profile):
         ProfileManagerBase.__init__(self, parent, default_profile)
-        self.add_button(Gtk.STOCK_APPLY, Gtk.ResponseType.ACCEPT)
+        self.add_button(_("_Apply"), Gtk.ResponseType.ACCEPT)

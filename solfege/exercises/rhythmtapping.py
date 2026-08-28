@@ -160,7 +160,7 @@ class Gui(abstract.LessonbasedGui):
         label.show()
         self.g_config_grid.attach(label, 0, 0, 1, 1)
         spin = gu.nSpinButton(self.m_exname, 'accuracy',
-                              Gtk.Adjustment(0, 0, 2, 0.01, 0.05))
+                              Gtk.Adjustment(value=0, lower=0, upper=2, step_increment=0.01, page_increment=0.05))
         spin.set_digits(2)
         self.g_config_grid.attach(spin, 1, 0, 1, 1)
 

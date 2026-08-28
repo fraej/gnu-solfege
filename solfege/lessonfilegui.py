@@ -140,10 +140,10 @@ class ExercisesMenuAddIn(object):
             menu = Gtk.Menu()
             for column in page:
                 for section in column:
-                    item = Gtk.MenuItem(section.m_name)
+                    item = Gtk.MenuItem(label=section.m_name)
                     for link in section:
                         if isinstance(link, frontpage.Page):
-                            item = Gtk.MenuItem(link.m_name)
+                            item = Gtk.MenuItem(label=link.m_name)
                             menu.append(item)
                             item.set_submenu(create_menu(link))
                         else:
@@ -176,7 +176,8 @@ class ExercisesMenuAddIn(object):
                                     "1cadef8c-859e-4482-a6c4-31bd715b4787",
                                     ):
                                 continue
-                            item = Gtk.MenuItem(_(lessonfile.infocache.get(link, 'title')))
+                            item = Gtk.MenuItem(label=_(
+                                lessonfile.infocache.get(link, 'title')))
                             item.connect('activate', self.on_select_exercise, link)
                             menu.append(item)
             return menu

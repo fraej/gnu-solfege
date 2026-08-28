@@ -404,18 +404,18 @@ class TestMusic(MObjTest):
         cfg.set_bool('config/override_default_instrument', False)
         self.do_file("""
         header { random_transpose = no }
-        question { music = music("\staff{c''}\staff{e'}\staff{c}") }
+        question { music = music("\\staff{c''}\\staff{e'}\\staff{c}") }
         question {
             instrument = 33, 34, 35, 36, 37, 38
-            music = music("\staff{c''}\staff{e'}\staff{c}")
+            music = music("\\staff{c''}\\staff{e'}\\staff{c}")
         }
         question {
             instrument = 33, 34, 35, 36, 37, 38
-            music = music("\staff{c''}\staff{b'}")
+            music = music("\\staff{c''}\\staff{b'}")
         }
         question {
             instrument = 33, 34, 35, 36, 37, 38
-            music = music("\staff{c''}")
+            music = music("\\staff{c''}")
         }
         """)
         self.p.m_transpose = mpd.MusicalPitch.new_from_notename("d'")
@@ -475,10 +475,10 @@ class TestMusic3(MObjTest):
         cfg.set_bool('config/override_default_instrument', False)
         self.do_file("""
         header { random_transpose = no }
-        question { music = music3("\staff{c''}\staff{e'}\staff{c}") }
+        question { music = music3("\\staff{c''}\\staff{e'}\\staff{c}") }
         question {
             instrument = 33, 34, 35, 36, 37, 38
-            music = music3("\staff{c''}\staff{g'}\staff{e'}\staff{c}")
+            music = music3("\\staff{c''}\\staff{g'}\\staff{e'}\\staff{c}")
         }
         """)
         self.p.m_transpose = mpd.MusicalPitch.new_from_notename("d'")
@@ -702,9 +702,9 @@ class TestErrorHandling(MObjTest):
                        "c \\clef ERR c d e\n"
                         "  ^^^^^^^^^"),
                       ("\\time 4/4\n"
-                       "   c d \clef ERR3 e f\n"
+                       "   c d \\clef ERR3 e f\n"
                        "  ",
-                       "   c d \clef ERR3 e f\n"
+                       "   c d \\clef ERR3 e f\n"
                        "       ^^^^^^^^^^"),
                         ))
 
@@ -1238,7 +1238,7 @@ class TestLessonfileMisc(TmpFileBase):
             # This test only works with nrandom, because prandom will
             # return a possible different value every time.
             if rfunc == 'nrandom':
-                l = Gtk.Label(label=st)
+                l = Gtk.Label(label=str(st))
                 self.assertTrue(l.get_text() == str(st), "%s and gtk does not cooperate." % rfunc)
 
 
@@ -1303,26 +1303,26 @@ class TestOurLessonFiles(unittest.TestCase):
                 if 'test' in f.header:
                     self.assertFalse('test_requirement' not in f.header, fullname)
 
-suite = unittest.makeSuite(TestParser)
-suite.addTest(unittest.makeSuite(TestParserTranslations))
-suite.addTest(unittest.makeSuite(TestMpdTransposable))
-suite.addTest(unittest.makeSuite(TestChord))
-suite.addTest(unittest.makeSuite(TestMusic))
-suite.addTest(unittest.makeSuite(TestMusic3))
-suite.addTest(unittest.makeSuite(TestVoiceCommon))
-suite.addTest(unittest.makeSuite(TestVoice))
-suite.addTest(unittest.makeSuite(TestRvoice))
-suite.addTest(unittest.makeSuite(TestSatb))
-suite.addTest(unittest.makeSuite(TestRhythm))
-suite.addTest(unittest.makeSuite(TestPercussion))
-suite.addTest(unittest.makeSuite(TestWavfile))
-suite.addTest(unittest.makeSuite(TestMidifile))
-suite.addTest(unittest.makeSuite(TestCmdline))
-suite.addTest(unittest.makeSuite(TestCSound))
-suite.addTest(unittest.makeSuite(TestMma))
-suite.addTest(unittest.makeSuite(TestLessonfileHeader))
-suite.addTest(unittest.makeSuite(TestLessonfileQuestion))
-suite.addTest(unittest.makeSuite(TestLessonfileMisc))
-suite.addTest(unittest.makeSuite(TestErrorHandling))
-suite.addTest(unittest.makeSuite(TestLabelObject))
-suite.addTest(unittest.makeSuite(TestOurLessonFiles))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestParser)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestParserTranslations))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMpdTransposable))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestChord))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMusic))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMusic3))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestVoiceCommon))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestVoice))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRvoice))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestSatb))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestRhythm))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestPercussion))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestWavfile))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMidifile))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestCmdline))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestCSound))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMma))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLessonfileHeader))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLessonfileQuestion))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLessonfileMisc))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestErrorHandling))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLabelObject))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestOurLessonFiles))

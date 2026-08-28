@@ -18,6 +18,7 @@
 import random
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gtk
 
 from solfege import abstract
@@ -49,7 +50,7 @@ class Teacher(abstract.Teacher):
         Return a true value if a new question was created otherwise false.
         """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if self.get_bool('config/picky_on_new_question') \
@@ -192,10 +193,10 @@ class Gui(abstract.Gui):
             box.pack_start(b, False, False, 0)
             return D
         #---------
-        self.g_intervalconfig_box = Gtk.VBox()
+        self.g_intervalconfig_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_config_grid.attach(self.g_intervalconfig_box, 0, 1, 3, 1)
         hbox = gu.bHBox(self.g_intervalconfig_box, False)
-        hbox.pack_start(Gtk.Label(_("First interval:")), False, False,
+        hbox.pack_start(Gtk.Label(label=_("First interval:")), False, False,
                         padding=gu.PAD_SMALL)
         self.g_rdbs = [pack_rdbs(hbox, self.update_first)]
         self.g_first_interval_up = nIntervalCheckBox(self.m_exname,
@@ -206,7 +207,7 @@ class Gui(abstract.Gui):
         self.g_intervalconfig_box.pack_start(self.g_first_interval_down, False, False, 0)
         #----------
         hbox = gu.bHBox(self.g_intervalconfig_box, False)
-        hbox.pack_start(Gtk.Label(_("Last interval:")), False, False,
+        hbox.pack_start(Gtk.Label(label=_("Last interval:")), False, False,
                         padding=gu.PAD_SMALL)
         self.g_rdbs.append(pack_rdbs(hbox, self.update_last))
         self.g_last_interval_up = nIntervalCheckBox(self.m_exname,

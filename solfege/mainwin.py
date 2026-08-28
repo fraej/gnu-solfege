@@ -55,14 +55,17 @@ from solfege import i18n
 
 class SplashWin(Gtk.Window):
 
-    def __init__(self):
-        Gtk.Window.__init__(self, Gtk.WindowType.POPUP)
+    def __init__(self, gtk_application):
+        Gtk.Window.__init__(self, Gtk.WindowType.TOPLEVEL)
+        gtk_application.add_window(self)
+        self.set_decorated(False)
+        self.set_type_hint(Gdk.WindowTypeHint.SPLASHSCREEN)
         self.set_position(Gtk.WindowPosition.CENTER)
         self.set_resizable(True)
         frame = Gtk.Frame()
         frame.set_shadow_type(Gtk.ShadowType.OUT)
         self.add(frame)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_border_width(20)
         frame.add(vbox)
         l = Gtk.Label(label=_("Starting GNU Solfege %s") % buildinfo.VERSION_STRING)
@@ -98,8 +101,7 @@ from solfege import filesystem
 class MusicViewerWindow(Gtk.Dialog):
 
     def __init__(self, parent):
-        Gtk.Dialog.__init__(self, parent)
-        self.set_transient_for(parent)
+        Gtk.Dialog.__init__(self, transient_for=parent)
         self.set_default_size(500, 300)
         self.g_music_displayer = mpd.MusicDisplayer()
         self.vbox.pack_start(self.g_music_displayer, True, True, 0)
@@ -117,14 +119,12 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
     default_front_page = os.path.join(lessonfile.exercises_dir, 'learningtree.txt')
     debug_front_page = os.path.join(lessonfile.exercises_dir, 'debugtree.txt')
 
-    def __init__(self, options, datadir):
-        Gtk.ApplicationWindow.__init__(self)#, Gtk.WindowType.TOPLEVEL)
-        self.set_show_menubar(False)
-        self._vbox = Gtk.VBox()
+    def __init__(self, gtk_application, options, datadir):
+        Gtk.ApplicationWindow.__init__(self, application=gtk_application)
+        self._vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self._vbox.show()
         self.add(self._vbox)
-        stock.SolfegeIconFactory(self, datadir)
-        Gtk.Settings.get_default().set_property('gtk-button-images', True)
+        self.icons = stock.SolfegeIconFactory(self, datadir)
         cfg.ConfigUtils.__dict__['__init__'](self, 'mainwin')
         self.set_resizable(self.get_bool('gui/mainwin_user_resizeable'))
         self.add_watch('gui/mainwin_user_resizeable', lambda s: self.set_resizable(self.get_bool('gui/mainwin_user_resizeable')))
@@ -138,15 +138,9 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
         self.g_path_info_dlg = None
         self.g_musicviewer_window = None
         self.m_history = []
-        self.g_ui_manager = Gtk.UIManager()
-        self.m_action_groups = {
-            'Exit': Gtk.ActionGroup('Exit'),
-            'NotExit': Gtk.ActionGroup('NotExit'),
-        }
-        for a in list(self.m_action_groups.values()):
-            self.g_ui_manager.insert_action_group(a, 1)
+        self._not_exit_widgets = []
         self.setup_menu()
-        self.main_box = Gtk.VBox()
+        self.main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.main_box.show()
         self._vbox.pack_start(self.main_box, True, True, 0)
 
@@ -216,74 +210,112 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
         self.display_frontpage()
 
     def setup_menu(self):
-        self.m_action_groups['Exit'].add_actions([
-          ('FileMenu', None, _('_File')),
-          ('AppQuit', 'gtk-quit', None, None, None, self.quit_program),
-        ])
-        self.m_action_groups['NotExit'].add_actions([
-          ('TheoryMenu', None, _('The_ory')),
-          ('FrontPagesMenu', None, _('Sele_ct Front Page')),
-          ('TheoryIntervals', None, _('_Intervals'), None, None,
-            lambda o: solfege.app.handle_href('theory-intervals.html')),
-          ('TreeEditor', None, _('_Edit Front Page'), None, None,
-            self.do_tree_editor),
-          ('ExportTrainingSet', None, _('E_xport Exercises to Audio Files…'), None, None,
-            self.new_training_set_editor),
-          ('EditPractiseSheet', None, _('Ear Training Test Pri_ntout…'), None, None,
-            self.new_practisesheet_editor),
-          ('ProfileManager', None, _("Profile _Manager"), None, None,
-            self.open_profile_manager),
-          ('OpenPreferencesWindow', 'gtk-preferences', None, '<ctrl>F12', None,
-            self.open_preferences_window),
-          ('HelpMenu', None, _('_Help')),
-          ('Search', 'gtk-search', _('_Search Exercises'), '<ctrl>F', None,
-              self.on_search_all_exercises),
-          ('FrontPage', None, _('_Front Page'), 'F5', None,
-              lambda w: self.display_frontpage()),
-          ('TestsPage', None, _('_Tests Page'), 'F6', None,
-              lambda w: self.display_testpage()),
-          ('RecentExercises', None, _('_Recent Exercises'), 'F7', None,
-              self.display_recent_exercises),
-          ('RecentTests', None, _('_Recent Tests'), 'F8', None,
-              self.display_recent_tests),
-          ('UserExercises', None, _('_User Exercises'), 'F9', None,
-              self.display_user_exercises),
-          ('SetupPyAlsa', None, _("Download and compile ALSA modules"), None, None, self.setup_pyalsa),
-          ('HelpHelp', 'gtk-help', _('_Help on the current exercise'), 'F1', None,
-            lambda o: solfege.app.please_help_me()),
-          ('HelpTheory', None, _('_Music theory on the current exercise'), 'F3', None, lambda o: solfege.app.show_exercise_theory()),
-          ('HelpIndex', None, _('_User manual'), None, None,
-            lambda o: solfege.app.handle_href('index.html')),
-          ('HelpShowPathInfo', None, _('_File locations'), None,
-            None, self.show_path_info),
-          ('HelpOnline', None, _('_Mailing lists, web page etc.'), None, None,
-            lambda o: solfege.app.handle_href('online-resources.html')),
-          ('HelpDonate', None, _('_Donate'), None, None,
-            lambda o: solfege.app.handle_href('http://solfege.tcamundsen.net/donate/')),
-          ('HelpReportingBugs', None, _('Reporting _bugs'), None, None,
-            lambda o: solfege.app.handle_href('bug-reporting.html')),
-          ('HelpAbout', 'gtk-about', None, None, None, self.show_about_window),
-        ])
+        self._accel_group = Gtk.AccelGroup()
+        self.add_accel_group(self._accel_group)
+        menubar = Gtk.MenuBar()
+        self._vbox.pack_start(menubar, False, False, 0)
 
-        self.g_ui_manager.add_ui_from_file("ui.xml")
+        file_root, file_menu = self._add_submenu(menubar, _('_File'))
+        self._add_menu_item(file_menu, _('_Front Page'),
+                            lambda w: self.display_frontpage(), 'F5')
+        self._add_menu_item(file_menu, _('_Tests Page'),
+                            lambda w: self.display_testpage(), 'F6')
+        self._add_menu_item(file_menu, _('_Recent Exercises'),
+                            self.display_recent_exercises, 'F7')
+        self._add_menu_item(file_menu, _('_Recent Tests'),
+                            self.display_recent_tests, 'F8')
+        self._add_menu_item(file_menu, _('_User Exercises'),
+                            self.display_user_exercises, 'F9')
+        self._add_menu_item(file_menu, _('_Search Exercises'),
+                            self.on_search_all_exercises, '<ctrl>F')
+        file_menu.append(Gtk.SeparatorMenuItem())
+        self.g_frontpages_item, self.g_frontpages_menu = self._add_submenu(
+            file_menu, _('Sele_ct Front Page'))
+        self._not_exit_widgets.append(self.g_frontpages_item)
+        self.g_frontpages_item.connect(
+            'activate', lambda item: self.create_frontpage_menu())
+        file_menu.append(Gtk.SeparatorMenuItem())
+        self._add_menu_item(file_menu, _('_Edit Front Page'),
+                            self.do_tree_editor)
+        self._add_menu_item(file_menu,
+                            _('E_xport Exercises to Audio Files…'),
+                            self.new_training_set_editor)
+        self._add_menu_item(file_menu, _('Ear Training Test Pri_ntout…'),
+                            self.new_practisesheet_editor)
+        file_menu.append(Gtk.SeparatorMenuItem())
+        self._add_menu_item(file_menu, _("Profile _Manager"),
+                            self.open_profile_manager)
+        self._add_menu_item(file_menu, _('_Preferences'),
+                            self.open_preferences_window, '<ctrl>F12')
+        self._add_menu_item(file_menu, _('_Quit'), self.quit_program,
+                            '<ctrl>Q', disable_in_test=False)
 
-        self.add_accel_group(self.g_ui_manager.get_accel_group())
-        hdlbox = Gtk.HBox()
-        hdlbox.show()
-        hdlbox.add(self.g_ui_manager.get_widget('/Menubar'))
-        self._vbox.pack_start(hdlbox, False, False, 0)
-        self.m_help_on_current_merge_id = None
+        self.g_help_root, help_menu = self._add_submenu(menubar, _('_Help'))
+        self._not_exit_widgets.append(self.g_help_root)
+        self._add_menu_item(help_menu, _('_User manual'),
+                            lambda o: solfege.app.handle_href('index.html'))
+        self.g_help_current_item = self._add_menu_item(
+            help_menu, _('_Help on the current exercise'),
+            lambda o: solfege.app.please_help_me(), 'F1')
+        self.g_help_theory_item = self._add_menu_item(
+            help_menu, _('_Music theory on the current exercise'),
+            lambda o: solfege.app.show_exercise_theory(), 'F3')
+        self.g_help_current_item.hide()
+        self.g_help_theory_item.hide()
+        self._add_menu_item(help_menu, _('_File locations'),
+                            self.show_path_info)
+        theory_root, theory_menu = self._add_submenu(help_menu, _('The_ory'))
+        self._not_exit_widgets.append(theory_root)
+        self._add_menu_item(theory_menu, _('_Intervals'),
+                            lambda o: solfege.app.handle_href(
+                                'theory-intervals.html'))
+        self.g_setup_pyalsa_item = self._add_menu_item(
+            help_menu, _("Download and compile ALSA modules"),
+            self.setup_pyalsa)
+        if sys.platform != 'linux':
+            self.g_setup_pyalsa_item.hide()
+        help_menu.append(Gtk.SeparatorMenuItem())
+        self._add_menu_item(help_menu, _('_Mailing lists, web page etc.'),
+                            lambda o: solfege.app.handle_href(
+                                'online-resources.html'))
+        self._add_menu_item(help_menu, _('Reporting _bugs'),
+                            lambda o: solfege.app.handle_href(
+                                'bug-reporting.html'))
+        self._add_menu_item(help_menu, _('_About'), self.show_about_window)
+        menubar.show_all()
+        self.g_help_current_item.hide()
+        self.g_help_theory_item.hide()
+        if sys.platform != 'linux':
+            self.g_setup_pyalsa_item.hide()
+
+    def _add_submenu(self, parent, label):
+        item = Gtk.MenuItem.new_with_mnemonic(label)
+        menu = Gtk.Menu()
+        item.set_submenu(menu)
+        parent.append(item)
+        return item, menu
+
+    def _add_menu_item(self, menu, label, callback, accelerator=None,
+                       disable_in_test=True):
+        item = Gtk.MenuItem.new_with_mnemonic(label)
+        item.connect('activate', callback)
+        if accelerator:
+            key, modifiers = Gtk.accelerator_parse(accelerator)
+            item.add_accelerator('activate', self._accel_group, key, modifiers,
+                                 Gtk.AccelFlags.VISIBLE)
+        menu.append(item)
+        if disable_in_test:
+            self._not_exit_widgets.append(item)
+        return item
 
     def create_frontpage_menu(self):
         """
         Create, or update if already existing, the submenu that let the
         user choose which front page file to display.
         """
-        if self.m_frontpage_merge_id:
-            self.g_ui_manager.remove_ui(self.m_frontpage_merge_id)
-        actions = []
+        for child in self.g_frontpages_menu.get_children():
+            self.g_frontpages_menu.remove(child)
         old_dir = None
-        s = "<menubar name='Menubar'><menu action='FileMenu'><menu action='FrontPagesMenu'>"
         for fn in frontpage.get_front_pages_list(solfege.app.m_options.debug):
             if solfege.splash_win:
                 solfege.splash_win.show_progress(fn)
@@ -295,45 +327,32 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
                 continue
             cur_dir = os.path.split(fn)[0]
             if old_dir != cur_dir:
-                s += '<separator name="sep@%s"/>' % fn
+                if old_dir is not None:
+                    self.g_frontpages_menu.append(Gtk.SeparatorMenuItem())
                 old_dir = cur_dir
-            s += "<menuitem action='%s'/>\n" % fn
-            if not self.m_action_groups['NotExit'].get_action(fn):
-                actions.append((fn, None, lessonfile.infocache.frontpage.get(fn, 'title'), None, fn,
-                lambda o, f=fn: self.change_frontpage(f)))
-            else:
-                action = self.m_action_groups['NotExit'].get_action(fn)
-                action.props.label = lessonfile.infocache.frontpage.get(fn, 'title')
-        s += "</menu></menu></menubar>"
-        self.m_action_groups['NotExit'].add_actions(actions)
-        self.m_frontpage_merge_id = self.g_ui_manager.add_ui_from_string(s)
+            item = self._add_menu_item(
+                self.g_frontpages_menu,
+                lessonfile.infocache.frontpage.get(fn, 'title'),
+                lambda o, filename=fn: self.change_frontpage(filename),
+                disable_in_test=False)
+            item.set_tooltip_text(fn)
+        self.g_frontpages_menu.show_all()
 
     def show_help_on_current(self):
         """
         Show the menu entries for the exercise help and music theory
         pages on the Help menu.
         """
-        if self.m_help_on_current_merge_id:
-            return
-        self.m_help_on_current_merge_id = self.g_ui_manager.add_ui_from_string("""
-<menubar name='Menubar'>
-  <menu action='HelpMenu'>
-    <placeholder name='PerExerciseHelp'>
-      <menuitem position='top' action='HelpHelp' />
-      <menuitem action='HelpTheory' />
-    </placeholder>
-  </menu>
-</menubar>""")
+        self.g_help_current_item.show()
+        self.g_help_theory_item.show()
 
     def hide_help_on_current(self):
         """
         Hide the menu entries for the help and music theory pages on the
         Help menu.
         """
-        if not self.m_help_on_current_merge_id:
-            return
-        self.g_ui_manager.remove_ui(self.m_help_on_current_merge_id)
-        self.m_help_on_current_merge_id = None
+        self.g_help_current_item.hide()
+        self.g_help_theory_item.hide()
 
     def display_error_message2(self, text, secondary_text):
         """
@@ -384,18 +403,22 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
 
     def show_path_info(self, w):
         if not self.g_path_info_dlg:
-            self.g_path_info_dlg = Gtk.Dialog(_("_File locations").replace("_", ""), self,
-                buttons=(Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT))
+            self.g_path_info_dlg = Gtk.Dialog(
+                title=_("_File locations").replace("_", ""),
+                transient_for=self)
+            self.g_path_info_dlg.add_button(_("_OK"),
+                                             Gtk.ResponseType.ACCEPT)
             sc = Gtk.ScrolledWindow()
             sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
-            self.g_path_info_dlg.vbox.pack_start(sc, True, True, 0)
+            self.g_path_info_dlg.get_content_area().pack_start(
+                sc, True, True, 0)
             #
             vbox = gu.hig_dlg_vbox()
-            sc.add_with_viewport(vbox)
+            sc.add(vbox)
 
             box1, box2 = gu.hig_category_vbox(_("_File locations").replace("_", ""))
             vbox.pack_start(box1, True, True, 0)
-            sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+            sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
             # statistics.sqlite
             # win32 solfegerc
             # win32 langenviron.txt
@@ -406,7 +429,10 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
             box2.pack_start(gu.hig_label_widget(_("User manual in HTML format:"), Gtk.Label(label=os.path.join(os.getcwd(), "help")), sizegroup), False, False, 0)
             box2.pack_start(gu.hig_label_widget("gtk:", Gtk.Label(label=str(Gtk)), sizegroup), False, False, 0)
             box2.pack_start(gu.hig_label_widget("pyalsa:", Gtk.Label(label=str(alsaseq)), sizegroup), False, False, 0)
-            box2.pack_start(gu.hig_label_widget("PYTHONHOME", Gtk.Label(os.environ.get('PYTHONHOME', 'Not defined')), sizegroup), False, False, 0)
+            box2.pack_start(gu.hig_label_widget(
+                "PYTHONHOME",
+                Gtk.Label(label=os.environ.get('PYTHONHOME', 'Not defined')),
+                sizegroup), False, False, 0)
             self.g_path_info_dlg.show_all()
 
             def f(*w):
@@ -414,15 +440,18 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
                 return True
             self.g_path_info_dlg.connect('response', f)
             self.g_path_info_dlg.connect('delete-event', f)
-            sc.set_size_request(min(vbox.size_request().width + gu.hig.SPACE_LARGE * 2,
-                                    Gdk.Screen.width() * 0.9),
-                                vbox.size_request().height)
+            unused, natural_size = vbox.get_preferred_size()
+            geometry = gu.get_monitor_geometry(self)
+            sc.set_size_request(
+                int(min(natural_size.width + gu.hig.SPACE_LARGE * 2,
+                        geometry.width * 0.9)),
+                natural_size.height)
 
     def setup_pyalsa(self, widget):
         download_pyalsa.download()
 
     def show_about_window(self, widget):
-        pixbuf = self.render_icon('solfege-icon', Gtk.IconSize.DIALOG)
+        pixbuf = self.icons.get_pixbuf('solfege-icon', Gtk.IconSize.DIALOG)
         a = self.g_about_window = Gtk.AboutDialog()
         a.set_transient_for(self)
         a.set_program_name("GNU Solfege")
@@ -462,18 +491,12 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
         fpeditor.Editor.edit_file(self.get_string("app/frontpage"))
 
     def post_constructor(self):
-        self.m_frontpage_merge_id = None
         self.create_frontpage_menu()
-        self.g_ui_manager.add_ui_from_file("help-menu.xml")
-        if sys.platform != 'linux2':
-            self.g_ui_manager.get_widget('/Menubar/HelpMenu/SetupPyAlsa').hide()
         if solfege.app.m_sound_init_exception is not None:
             if solfege.splash_win:
                 solfege.splash_win.destroy()
                 solfege.splash_win = None
             solfege.app.display_sound_init_error_message(solfege.app.m_sound_init_exception)
-        item = self.g_ui_manager.get_widget("/Menubar/FileMenu/FrontPagesMenu")
-        item.connect('activate', lambda s: self.create_frontpage_menu())
         try:
             i18n.locale_setup_failed
             print("\n".join(textwrap.wrap("Translations are disabled because your locale settings are broken. This is not a bug in GNU Solfege, so don't report it. The README file distributed with the program has some more details.")), file=sys.stderr)
@@ -679,7 +702,11 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
                 break
         if can_quit:
             solfege.app.quit_program()
-            Gtk.main_quit()
+            gtk_application = self.get_application()
+            if gtk_application:
+                gtk_application.quit()
+            else:
+                self.destroy()
         else:
             return True
 
@@ -697,18 +724,22 @@ class MainWin(Gtk.ApplicationWindow, cfg.ConfigUtils):
         if 'enter_test_mode' not in dir(self.get_view()):
             gu.dialog_ok(_("The '%s' exercise module does not support test yet." % self.m_viewer), self)
             return
-        self.m_action_groups['NotExit'].set_sensitive(False)
+        for widget in self._not_exit_widgets:
+            widget.set_sensitive(False)
         self.g = self.get_view().g_notebook.get_nth_page(0)
-        self.get_view().g_notebook.get_nth_page(0).reparent(self.main_box)
+        self.get_view().g_notebook.remove(self.g)
+        self.main_box.pack_start(self.g, True, True, 0)
         self.get_view().g_notebook.hide()
         self.get_view().enter_test_mode()
 
     def exit_test_mode(self):
         solfege.app.m_test_mode = False
-        self.m_action_groups['NotExit'].set_sensitive(True)
-        box = Gtk.VBox()
+        for widget in self._not_exit_widgets:
+            widget.set_sensitive(True)
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.get_view().g_notebook.insert_page(box, Gtk.Label(label=_("Practise")), 0)
-        self.g.reparent(box)
+        self.main_box.remove(self.g)
+        box.pack_start(self.g, True, True, 0)
         self.get_view().g_notebook.show()
         self.get_view().g_notebook.get_nth_page(0).show()
         self.get_view().g_notebook.set_current_page(0)

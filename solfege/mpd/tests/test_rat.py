@@ -53,4 +53,4 @@ class TestRat(unittest.TestCase):
         self.assertEqual(v, [Rat(0, 4), Rat(1, 8), Rat(1, 4), Rat(3, 8)])
 
 
-suite = unittest.makeSuite(TestRat)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestRat)

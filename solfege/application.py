@@ -388,9 +388,8 @@ class SolfegeApp(cfg.ConfigUtils):
         solfege.win.box_dict[module].g_config_grid.set_sensitive(True)
         solfege.win.box_dict[module].action_area.set_sensitive(True)
         solfege.win.box_dict[module].on_start_practise()
-        w = solfege.win.g_ui_manager.get_widget("/Menubar/HelpMenu/PerExerciseHelp/HelpTheory")
-        if w:
-            w.set_sensitive(bool(self.m_teachers[module].m_P.header.theory))
+        solfege.win.g_help_theory_item.set_sensitive(
+            bool(self.m_teachers[module].m_P.header.theory))
         return module
 
     def test_lessonfile(self, filename):

@@ -16,6 +16,7 @@
 
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gdk
 from gi.repository import Gtk
 
@@ -59,7 +60,7 @@ class RhythmViewer(Gtk.Frame):
         Gtk.Frame.__init__(self)
         self.set_shadow_type(Gtk.ShadowType.IN)
         self.g_parent = parent
-        self.g_box = Gtk.HBox(False, 0)
+        self.g_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         self.g_box.show()
         self.g_box.set_spacing(gu.PAD_SMALL)
         self.g_box.set_border_width(gu.PAD)
@@ -83,7 +84,7 @@ class RhythmViewer(Gtk.Frame):
         create those |__| that represents one beat
         """
         if self.__timeout:
-            GObject.source_remove(self.__timeout)
+            GLib.source_remove(self.__timeout)
             self.__timeout = None
         self.clear()
         for x in range(self.m_num_beats):
@@ -111,7 +112,7 @@ class RhythmViewer(Gtk.Frame):
         assert len(self.m_data) <= self.m_num_beats
         if len(self.g_box.get_children()) >= self.m_num_beats:
             self.g_box.get_children()[self.m_num_beats - 1].destroy()
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         vbox.show()
         im = gu.create_rhythm_image(const.RHYTHMS[i])
         vbox.pack_start(im, True, True, 0)
@@ -180,13 +181,16 @@ class RhythmViewer(Gtk.Frame):
         self.clear()
         l = Gtk.Label(label=s)
         l.set_name("Feedback")
-        l.set_alignment(0.0, 0.5)
+        l.set_halign(Gtk.Align.START)
+        l.set_valign(Gtk.Align.CENTER)
         l.show()
         self.g_box.pack_start(l, True, True, 0)
+        unused, label_size = l.get_preferred_size()
+        unused, box_size = self.g_box.get_preferred_size()
         self.g_box.set_size_request(
-            max(l.size_request().width + gu.PAD * 2, self.g_box.size_request().width),
-            max(l.size_request().height + gu.PAD * 2, self.g_box.size_request().height))
-        self.__timeout = GObject.timeout_add(2000, self.unflash)
+            max(label_size.width + gu.PAD * 2, box_size.width),
+            max(label_size.height + gu.PAD * 2, box_size.height))
+        self.__timeout = GLib.timeout_add(2000, self.unflash)
 
     def unflash(self, *v):
         self.__timeout = None
@@ -203,11 +207,11 @@ class Gui(abstract.Gui, abstract.RhythmAddOnGuiClass):
         self.practise_box.pack_start(self.g_answer_box, False, False, 0)
         #-------
         hbox = gu.bHBox(self.practise_box, False)
-        b = Gtk.Button(_("Play"))
+        b = Gtk.Button(label=_("Play"))
         b.show()
         b.connect('clicked', self.play_users_answer)
         hbox.pack_start(b, False, True, 0)
-        self.practise_box.pack_start(Gtk.HBox(False, 0), False, False,
+        self.practise_box.pack_start(Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0), False, False,
                                      padding=gu.PAD_SMALL)
         self.g_rhythm_viewer = RhythmViewer(self)
         # FIXME the value 52 is dependant on the theme used
@@ -235,11 +239,11 @@ class Gui(abstract.Gui, abstract.RhythmAddOnGuiClass):
                  "not_start_with_rest",
                  _("Don't start the question with a rest")),
                 0, 3, 1, 1)
-        label = Gtk.Label(_("Beats per minute:"))
+        label = Gtk.Label(label=_("Beats per minute:"))
         label.props.halign = Gtk.Align.END
         self.g_config_grid.attach(label, 0, 4, 1, 1)
         spin = gu.nSpinButton(self.m_exname, 'bpm',
-                 Gtk.Adjustment(60, 20, 240, 1, 10))
+                 Gtk.Adjustment(value=60, lower=20, upper=240, step_increment=1, page_increment=10))
         self.g_config_grid.attach(spin, 1, 4, 1, 1)
         self._add_auto_new_question_gui(row=5)
         self.g_config_grid.show_all()

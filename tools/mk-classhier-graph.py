@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import re
 import sys
@@ -6,10 +6,12 @@ import os
 import textwrap
 
 if len(sys.argv) == 1 or sys.argv[1] == '-h':
-    print "\nUsage:"
-    print "\t./tools/classhier.py file1.py file2.py ...\n"
-    print "\n\t".join(textwrap.wrap("\tGenerate a nice graph of the class hierarchy in the files supplied as arguments."))
-    print
+    print("\nUsage:")
+    print("\t./tools/classhier.py file1.py file2.py ...\n")
+    print("\n\t".join(textwrap.wrap(
+        "\tGenerate a nice graph of the class hierarchy in the files "
+        "supplied as arguments.")))
+    print()
     sys.exit(0)
 
 
@@ -49,32 +51,31 @@ class ClassDb(object):
         def fmt(mod, cls):
             return cls
             return r'"%s %s"' % (mod.replace(".", "_"), cls)
-        f = open(filename, 'w')
-        if filetype == 'fdp':
-            joinstr = " -- "
-            print >> f, "graph G {"
-            print >> f, "overlap=false;"
-            print >> f, "splines=true;"
-        elif filetype == 'dot':
-            print >> f, "digraph G {"
-            #print >> f, 'size = "8,10";'
-            print >> f, 'ratio = fill;'
-            print >> f, 'margin = 1;'
-            print >> f, 'center = 1;'
-            print >> f, 'bgcolor=white;'
-            print >> f, 'edge [color=blue,arrowhead=normal,arrowsize=1.5];'
-            print >> f, "rankdir=LR;"
-
-            joinstr = " -> "
-        for mod in self.db:
-            for cl in self.db[mod]:
-                this_mod = mod.replace(".", "_")
-                #print >> f, fmt(mod, cl)
-                for parent in self.db[mod][cl]:
-                    p = r'"%s\n%s"' % (this_mod, parent)
-                    print >> f, r'%s%s%s;' % (fmt(mod, cl), joinstr, fmt(*parent))
-        print >> f, "}"
-        f.close()
+        with open(filename, 'w', encoding='utf-8') as f:
+            if filetype == 'fdp':
+                joinstr = " -- "
+                print("graph G {", file=f)
+                print("overlap=false;", file=f)
+                print("splines=true;", file=f)
+            elif filetype == 'dot':
+                print("digraph G {", file=f)
+                print('ratio = fill;', file=f)
+                print('margin = 1;', file=f)
+                print('center = 1;', file=f)
+                print('bgcolor=white;', file=f)
+                print(
+                    'edge [color=blue,arrowhead=normal,arrowsize=1.5];',
+                    file=f)
+                print("rankdir=LR;", file=f)
+                joinstr = " -> "
+            else:
+                raise ValueError("Unknown graph file type: %s" % filetype)
+            for mod in self.db:
+                for cl in self.db[mod]:
+                    for parent in self.db[mod][cl]:
+                        print(r'%s%s%s;' % (
+                            fmt(mod, cl), joinstr, fmt(*parent)), file=f)
+            print("}", file=f)
 
 class_re = re.compile(r"""
    (?P<all>class\s*
@@ -121,7 +122,7 @@ def do_file(fn):
                     continue
                 mname = os.path.join(mod_split(modulename)[0], mod_split(p)[0]) + ".py"
                 if mod_split(p)[0] and not os.path.exists(mname):
-                    print "DROPPING", p
+                    print("DROPPING", p)
                     continue
                 if "." in p:
                     mm = ".".join((package, mod_split(p)[0]))
@@ -144,5 +145,5 @@ for mod, d in db.db.items():
 
 db.write("classhier.dot", 'dot')
 os.system("dot -T png -o classhier.png classhier.dot")
-print "created classhier.png"
+print("created classhier.png")
 #os.system("fdp -T png -o classhier.png classhier.dot")

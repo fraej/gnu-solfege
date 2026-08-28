@@ -60,5 +60,5 @@ class TestMisc(unittest.TestCase):
             self.assertEqual(v[1], 4)
 
 
-suite = unittest.makeSuite(TestStringGetLineAt)
-suite.addTest(unittest.makeSuite(TestMisc))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestStringGetLineAt)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMisc))

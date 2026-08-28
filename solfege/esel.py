@@ -109,12 +109,14 @@ class SelectWinBase(Gtk.ScrolledWindow):
     def adjust_scrolledwin_size(self):
         # We do set_size_request on the view to make the window so wide
         # that we avoid a horizontal scroll bar.
-        w = self.g_box.size_request().width
+        unused, box_size = self.g_box.get_preferred_size()
+        w = box_size.width
         # It should be possible to check if the vscrollbar is visible, and
         # only reserve space for it. But I cannot get that to works. I find
         # that self.get_vscrollbar().props.visible is updated only part
         # of the time.
-        w += self.get_vscrollbar().size_request().width
+        unused, scrollbar_size = self.get_vscrollbar().get_preferred_size()
+        w += scrollbar_size.width
         # FIXME I don't understand why we have to add the extra
         # two pixels to avoid the horizontal scrollbar in all cases.
         # HACK TMP GTK3
@@ -127,14 +129,15 @@ class SelectWinBase(Gtk.ScrolledWindow):
         # Also, there is something about the spacing that is not correct,
         # because I need to add +2 below to avoid the vertical scrollbar on
         # ubuntu 10.04 and +4 on MS Windows XP.
-        h = self.g_box.size_request().height + 4
-        if h > Gdk.Screen.height() * 0.8:
-            h = int(Gdk.Screen.height() * 0.8)
+        h = box_size.height + 4
+        geometry = gu.get_monitor_geometry(solfege.win)
+        if h > geometry.height * 0.8:
+            h = int(geometry.height * 0.8)
         self.set_size_request(w, h if h > self.m_min_height else self.m_min_height)
         # Then we check if we have to move the app window higher up on the
         # screen so that the whole window is visible.
         px, py = solfege.win.get_position()
-        if py + h > Gdk.Screen.height():
+        if py + h > geometry.y + geometry.height:
             solfege.win.move(px, 0)
 
 
@@ -143,10 +146,12 @@ class ExerciseView(SelectWinBase):
     def __init__(self, fields=('link',)):
         SelectWinBase.__init__(self)
         self.m_fields = fields
-        self.g_box = Gtk.VBox(False, 0)
+        self.g_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         self.g_box.set_border_width(gu.hig.SPACE_MEDIUM)
-        self.add_with_viewport(self.g_box)
-        self.g_searchbox = Gtk.HBox(False, gu.hig.SPACE_SMALL)
+        self.add(self.g_box)
+        self.g_searchbox = Gtk.Box(
+            orientation=Gtk.Orientation.HORIZONTAL,
+            homogeneous=False, spacing=gu.hig.SPACE_SMALL)
         self.g_box.pack_start(self.g_searchbox, False, False, padding=gu.hig.SPACE_MEDIUM)
         self.g_searchentry = Gtk.Entry()
         self.g_searchbox.pack_start(self.g_searchentry, True, True, 0)
@@ -180,7 +185,8 @@ class ExerciseView(SelectWinBase):
                     label = Gtk.Label(label=linklist.m_text)
                     label.set_use_markup(True)
                     label.set_line_wrap(True)
-                    label.set_alignment(0.0, 0.5)
+                    label.set_halign(Gtk.Align.START)
+                    label.set_valign(Gtk.Align.CENTER)
                     self.g_grid.attach(label, col_idx * COLW, y, 1, 1)
                     y += 1
                     continue
@@ -189,7 +195,8 @@ class ExerciseView(SelectWinBase):
                     and not frontpage._TreeCommon.tests_in_sub(linklist)):
                         continue
                 heading = Gtk.Label(label="<b>%s</b>" % linklist.m_name)
-                heading.set_alignment(0.0, 0.5)
+                heading.set_halign(Gtk.Align.START)
+                heading.set_valign(Gtk.Align.CENTER)
                 heading.set_use_markup(True)
                 self.g_grid.attach(heading, col_idx * COLW, y, 2, 1)
                 y += 1
@@ -226,8 +233,10 @@ class ExerciseView(SelectWinBase):
                                     if fieldname == 'filename':
                                         label = Gtk.Label(label=link)
                                     else:
-                                        label = Gtk.Label(lessonfile.infocache.get(link, fieldname))
-                                    label.set_alignment(0.0, 0.5)
+                                        label = Gtk.Label(label=
+                                            lessonfile.infocache.get(
+                                                link, fieldname))
+                                    label.set_xalign(0.0)
                                 self.g_grid.attach(label, col_idx * COLW + field_idx, y, 1, 1)
                                 if lessonfile.infocache.get(link, 'module') == 'toneincontext':
                                     from solfege.exercises import toneincontext
@@ -236,7 +245,8 @@ class ExerciseView(SelectWinBase):
                                     except solfege.statistics.DB.FileNotInDB:
                                         pass
                                     else:
-                                        label = Gtk.Label("{:.0f}%".format(p))
+                                        label = Gtk.Label(
+                                            label="{:.0f}%".format(p))
                                         if p < 0.5:
                                             label.set_name("wlabelred")
                                         elif p < 0.9:
@@ -266,10 +276,10 @@ class ExerciseView(SelectWinBase):
                         if isinstance(link, str):
                             passed, result = solfege.db.get_test_status(link)
                             if passed == True:
-                                self.g_grid.attach(Gtk.Label(_("passed, %.1f%%") % (result * 100)),
+                                self.g_grid.attach(Gtk.Label(label=_("passed, %.1f%%") % (result * 100)),
                                                    col_idx * COLW + 2, y, 1, 1)
                             if passed == False:
-                                self.g_grid.attach(Gtk.Label(_("failed, %.1f%%") % (result * 100)),
+                                self.g_grid.attach(Gtk.Label(label=_("failed, %.1f%%") % (result * 100)),
                                                    col_idx * COLW + 2, y, 1, 1)
                     y += 1
             if label:

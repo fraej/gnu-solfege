@@ -57,7 +57,7 @@ def presetup(app_defaults_filename, system_filename, user_filename):
                 _("Parsing %s failed") % filesystem.rcfile())
         m.format_secondary_text(str(e) + "\n\n" + _("We cannot recover from this, we can rename the corrupt file to %s and then start the program." % renamed_fn))
         m.add_buttons("Rename", 10)
-        m.add_buttons(Gtk.STOCK_QUIT, 11)
+        m.add_buttons(_("_Quit"), 11)
         m.set_default_response(11)
         ret = m.run()
         if ret == 10:

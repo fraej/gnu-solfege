@@ -94,4 +94,4 @@ class TestInterval(unittest.TestCase):
         )):
             self.assertEqual(Interval.new_from_int(i).get_cname(), s, (i, s))
 
-suite = unittest.makeSuite(TestInterval)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestInterval)

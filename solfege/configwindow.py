@@ -60,28 +60,29 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         solfege.win.g_config_window = None
 
     def __init__(self):
-        Gtk.Dialog.__init__(self, _("GNU Solfege Preferences"),
-             solfege.win, 0,
-             (Gtk.STOCK_HELP, Gtk.ResponseType.HELP, Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE))
+        Gtk.Dialog.__init__(self, title=_("GNU Solfege Preferences"),
+                            transient_for=solfege.win, flags=0)
+        self.add_buttons(_("_Help"), Gtk.ResponseType.HELP,
+                         _("_Close"), Gtk.ResponseType.CLOSE)
         cfg.ConfigUtils.__init__(self, 'configwindow')
         self.connect('response', self.apply_and_close)
         # We do this so that the window is only hidden when the
         # user click on the close button provided by the window manager.
         self.connect('delete-event', self.on_destroy)  # lambda w, e: True)
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(gu.hig.SPACE_LARGE)
         hbox.set_border_width(gu.hig.SPACE_SMALL)
-        self.vbox.pack_start(hbox, True, True, 0)
+        self.get_content_area().pack_start(hbox, True, True, 0)
 
         frame = Gtk.Frame()
         self.g_pages = Gtk.TreeStore(str)
-        self.g_pview = Gtk.TreeView(self.g_pages)
+        self.g_pview = Gtk.TreeView(model=self.g_pages)
         self.g_pview.set_headers_visible(False)
         hbox.pack_start(frame, False, False, 0)
         frame.add(self.g_pview)
 
-        self.g_page_box = Gtk.HBox()
+        self.g_page_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.pack_start(self.g_page_box, True, True, 0)
         self.m_page_mapping = {}
 
@@ -113,7 +114,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         self.g_pview.connect('cursor-changed', cursor_changed)
 
     def new_page_box(self, parent, heading):
-        page_vbox = Gtk.VBox()
+        page_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         page_vbox.set_spacing(gu.hig.SPACE_MEDIUM)
         self.g_page_box.pack_start(page_vbox, True, True, 0)
         it = self.g_pages.append(parent, [heading])
@@ -124,16 +125,20 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         it, page_vbox = self.new_page_box(None, _("Instruments"))
         vbox, category_vbox = gu.hig_category_vbox(_("Tempo"))
         page_vbox.pack_start(vbox, False, False, 0)
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         tempo_hbox = Gtk.Box(spacing=6)
         self.g_default_bpm = gu.nSpinButton('config', 'default_bpm',
-            Gtk.Adjustment(self.get_int('config/default_bpm'), 10, 500, 1, 10))
+            Gtk.Adjustment(value=self.get_int('config/default_bpm'),
+                           lower=10, upper=500, step_increment=1,
+                           page_increment=10))
         self.g_arpeggio_bpm = gu.nSpinButton('config', 'arpeggio_bpm',
-            Gtk.Adjustment(self.get_int('config/arpeggio_bpm'), 10, 500, 1, 10))
+            Gtk.Adjustment(value=self.get_int('config/arpeggio_bpm'),
+                           lower=10, upper=500, step_increment=1,
+                           page_increment=10))
         for text, widget in [(_("_Default:"), self.g_default_bpm),
                              (_("A_rpeggio:"), self.g_arpeggio_bpm)]:
-            label = Gtk.Label(_("BPM"))
+            label = Gtk.Label(label=_("BPM"))
             tempo_hbox.pack_start(
                 gu.hig_label_widget(text, [widget, label], None),
                 False, False, 0)
@@ -168,7 +173,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         it, page_vbox = self.new_page_box(None, _("User"))
         box, category_vbox = gu.hig_category_vbox(_("User's Vocal Range"))
         page_vbox.pack_start(box, False, False, 0)
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         self.g_highest_singable = notenamespinbutton.NotenameSpinButton(
             self.get_string('user/highest_pitch'))
@@ -203,7 +208,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         it, page_vbox = self.new_page_box(None, _("External Programs"))
         box, category_vbox = gu.hig_category_vbox(_("Converters"))
         page_vbox.pack_start(box, False, False, 0)
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         # midi_to_wav
         self.g_wav_convertor = gu.sComboBox(
@@ -243,7 +248,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         ########
         # Misc #
         ########
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         box, category_vbox = gu.hig_category_vbox(_("Miscellaneous"))
         page_vbox.pack_start(box, False, False, 0)
@@ -263,10 +268,9 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
             def binary_changed_cb(widget, binary):
                 widget.warning.props.visible = not bool(
                     osutils.find_progs((cfg.get_string('programs/%s' % binary),)))
-            combo.warning = Gtk.Image()
+            combo.warning = Gtk.Image.new_from_icon_name(
+                "dialog-warning-symbolic", Gtk.IconSize.SMALL_TOOLBAR)
             combo.warning.set_tooltip_text(_("Not found. Much of GNU Solfege will run fine without this program. You will get a message when the program is required, and the user manual will explain what you need it for."))
-            combo.warning.set_from_stock(Gtk.STOCK_DIALOG_WARNING,
-                                              Gtk.IconSize.SMALL_TOOLBAR)
             box = gu.hig_label_widget(label,
                                       [combo, combo.warning],
                                       sizegroup, True, True)
@@ -283,7 +287,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         page_vbox.pack_start(self.g_mainwin_user_resizeable, False, False, 0)
 
         # Combobox to select language
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(6)
         label = Gtk.Label()
         label.set_text_with_mnemonic(_("Select _language:"))
@@ -325,7 +329,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         hbox.pack_start(self.g_language, False, False, 0)
         page_vbox.pack_start(hbox, False, False, 0)
         l = Gtk.Label(label=_("You have to restart the program for the language change to take effect."))
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         page_vbox.pack_start(l, False, False, 0)
 
         self.create_idtone_accels_config(i_iter)
@@ -341,7 +345,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
             self.g_idtone_accels.append((
                 solfege.mpd.MusicalPitch.new_from_notename(notename).get_user_notename(),
                 cfg.get_string('idtone/tone_%s_ak' % notename)))
-        self.g_treeview = Gtk.TreeView(self.g_idtone_accels)
+        self.g_treeview = Gtk.TreeView(model=self.g_idtone_accels)
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(_("Note name"), renderer, text=0)
         self.g_treeview.append_column(column)
@@ -369,7 +373,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         layouts = {'ascii': (_('ASCII'), 'awsedfujikol'),
                    'dvorak': (_('Dvorak'), 'a,o.eughctrn'),
         }
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         page_vbox.pack_start(hbox, False, False, 0)
 
         def set_buttons(widget, layout):
@@ -384,7 +388,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
                 if not it:
                     break
         for key in layouts:
-            btn = Gtk.Button(layouts[key][0])
+            btn = Gtk.Button(label=layouts[key][0])
             btn.connect('clicked', set_buttons, key)
             hbox.pack_start(btn, True, True, 0)
 
@@ -400,7 +404,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
             self.g_interval_accels.append((
                 mpd.Interval.new_from_int(intervals.index(interval) + 1).get_name(),
                 cfg.get_string('interval_input/%s' % interval)))
-        self.g_intervals_treeview = Gtk.TreeView(self.g_interval_accels)
+        self.g_intervals_treeview = Gtk.TreeView(model=self.g_interval_accels)
         renderer = Gtk.CellRendererText()
         column = Gtk.TreeViewColumn(_("Interval"), renderer, text=0)
         self.g_intervals_treeview.append_column(column)
@@ -425,7 +429,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         column = Gtk.TreeViewColumn(_i("keyboard|Key"), renderer, text=1)
         self.g_intervals_treeview.append_column(column)
         page_vbox.pack_start(self.g_intervals_treeview, True, True, 0)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         page_vbox.pack_start(hbox, False, False, 0)
         layouts = {'ascii': (_('ASCII'), '1qaz2wsx3edc4rfv'),
                    'dvorak': (_('Dvorak'), "1'a;2,oq3.ej4puk"),
@@ -443,7 +447,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
                 if not it:
                     break
         for key in layouts:
-            btn = Gtk.Button(layouts[key][0])
+            btn = Gtk.Button(label=layouts[key][0])
             btn.connect('clicked', set_buttons, key)
             hbox.pack_start(btn, True, True, 0)
 
@@ -472,19 +476,19 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         page_vbox.pack_start(box, False, False, 0)
         self.g_old_stat_info = Gtk.Label()
         self.g_old_stat_info.set_line_wrap(True)
-        self.g_old_stat_info.set_alignment(0.0, 0.5)
+        self.g_old_stat_info.set_xalign(0.0)
         category_vbox.pack_start(self.g_old_stat_info, False, False, 0)
         #
-        self.g_delete_old_statistics = Gtk.Button(stock=Gtk.STOCK_DELETE)
+        self.g_delete_old_statistics = Gtk.Button.new_with_mnemonic(_("_Delete"))
         self.g_delete_old_statistics.connect('clicked', self.delete_obsolete_statistics)
         category_vbox.pack_start(self.g_delete_old_statistics, False, False, 0)
         box, category_vbox = gu.hig_category_vbox(_("Statistics"))
         page_vbox.pack_start(box, False, False, 0)
         self.g_stat_info = Gtk.Label()
         self.g_stat_info.set_line_wrap(True)
-        self.g_stat_info.set_alignment(0.0, 0.5)
+        self.g_stat_info.set_xalign(0.0)
         category_vbox.pack_start(self.g_stat_info, False, False, 0)
-        b = Gtk.Button(stock=Gtk.STOCK_DELETE)
+        b = Gtk.Button.new_with_mnemonic(_("_Delete"))
         b.connect('clicked', self.delete_statistics)
         category_vbox.pack_start(b, False, False, 0)
         self.update_statistics_info()
@@ -543,7 +547,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
                         ('alsaplayer', ''),
              ],
             }
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         for formatid, format in list(format_info.items()):
             combo = gu.sComboBox('sound', '%s_player' % formatid, [p[0] for p in format['players']])
             combo.set_tooltip_text(_("Enter the name of the program. An absolute path is required only if the executable is not found on the PATH."))
@@ -562,7 +566,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
                     osutils.find_progs((widget.get_child().get_text(),))))
 
             combo.connect('changed', _changed, formatid)
-            testbutton = Gtk.Button(_("_Test").replace("_", ""))
+            testbutton = Gtk.Button(label=_("_Test").replace("_", ""))
             testbutton.set_tooltip_text(_("This button is clickable only if the binary is found."))
             combo.testbutton = testbutton
             testbutton.connect('clicked', self.test_XXX_player,
@@ -588,7 +592,7 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
             for m in self.g_alsa_popupmenu:
                 m.destroy()
             for clientid, portid, clientname, portname, labeltext in connection_list:
-                item = Gtk.MenuItem(labeltext)
+                item = Gtk.MenuItem(label=labeltext)
                 self.g_alsa_popupmenu.append(item)
 
                 def ff(widget, clientid, portid):
@@ -649,7 +653,9 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         self.g_device_file = gu.sComboBox('sound', 'device_file',
             ['/dev/sequencer', '/dev/sequencer2', '/dev/music'])
         self.g_synth_num = Gtk.SpinButton()
-        self.g_synth_num.set_adjustment(Gtk.Adjustment(0, 0, 100, 1, 1))
+        self.g_synth_num.set_adjustment(Gtk.Adjustment(
+            value=0, lower=0, upper=100, step_increment=1,
+            page_increment=1))
         self.g_synth_num.set_value(self.get_int('sound/synth_number'))
         hbox.pack_start(self.g_device_file, False, False, 0)
         hbox.pack_start(self.g_synth_num, False, False, 0)
@@ -676,10 +682,11 @@ class ConfigWindow(Gtk.Dialog, cfg.ConfigUtils):
         #############
         # midi setup
         #############
-        txt = Gtk.Label(_("""Solfege has two ways to play MIDI files. It is recommended to use Windows multimedia output. An external MIDI player can be useful if your soundcard lacks a hardware synth, in which case you have to use a program like timidity to play the music."""))
+        txt = Gtk.Label(label=_("""Solfege has two ways to play MIDI files. It is recommended to use Windows multimedia output. An external MIDI player can be useful if your soundcard lacks a hardware synth, in which case you have to use a program like timidity to play the music."""))
         txt.set_line_wrap(1)
         txt.set_justify(Gtk.Justification.FILL)
-        txt.set_alignment(0.0, 0.0)
+        txt.set_xalign(0.0)
+        txt.set_yalign(0.0)
         page_vbox.pack_start(txt, False, False, 0)
 
         self.g_fakesynth_radio = gu.RadioButton(None, _("_No sound"), None)

@@ -1,17 +1,17 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 This script demonstrates a bug or something I don't understand about
 the old OSS (not 4.1). 
 """
 
 import sys, os
-if os.getcwdu()[-4:] == "test":
+if os.getcwd()[-4:] == "test":
     sys.path.insert(0, "..")
 else:
     sys.path.insert(0, ".")
-import src.i18n
-src.i18n.setup(".", "C")
-import soundcard
+from solfege import i18n
+i18n.setup(".", "C")
+from solfege import soundcard
 soundcard.initialise_devicefile("/dev/sequencer2", 2)
 s = soundcard.solfege_c_midi
 
@@ -44,6 +44,6 @@ s.seq_stop_note(devnum, 0, 62, 90)
 s.seqbuf_dump()
 
 import sys
-print "press ENTER to continue"
+print("press ENTER to continue")
 sys.stdin.readline()
 soundcard.synth.close()

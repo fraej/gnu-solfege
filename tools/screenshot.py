@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import sys
@@ -8,12 +8,12 @@ import time
 
 
 def run(cmd):
-    print "run:", cmd
+    print("run:", cmd)
     os.system(cmd)
 
 
 def get_image_dim(fn):
-    output = Popen(["file", fn], stdout=PIPE).communicate()[0]
+    output = Popen(["file", fn], stdout=PIPE, text=True).communicate()[0]
     r = re.compile(r"(\d+)\s*x+\s*(\d+)")
     m = r.search(output)
     if m:
@@ -44,15 +44,15 @@ Make a screenshot using "import". Run this script, and then
 click on the window you want to make a screenshot of.
 """
 if len(sys.argv) not in (2, 3):
-    print help
+    print(help)
     sys.exit()
 if sys.argv[1] in ('-h', '--help'):
-    print help
+    print(help)
     sys.exit()
 
 try:
     width = int(sys.argv[2])
-except:
+except (IndexError, ValueError):
     width = None
 do_file(sys.argv[1], width)
-print "Remember to use the Simple (Enkelt, nb_NO) theme."
+print("Remember to use the Simple (Enkelt, nb_NO) theme.")

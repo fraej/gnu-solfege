@@ -39,6 +39,7 @@ class TestDB(unittest.TestCase):
 
     def test_store_variables(self):
         db = statistics.DB()
+        self.addCleanup(db.conn.close)
         db.set_variable('database_version', 2)
         self.assertEqual(db.get_variable('database_version'), 2)
         db.set_variable('database_version', 3)
@@ -68,4 +69,4 @@ class TestDB(unittest.TestCase):
             db.del_variable, 'does_not_exist')
 
 
-suite = unittest.makeSuite(TestDB)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestDB)

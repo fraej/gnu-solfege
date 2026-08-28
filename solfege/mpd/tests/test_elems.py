@@ -450,6 +450,6 @@ class TestBarProxy(unittest.TestCase):
         bp.fill_skips()
         bp.end()
 
-suite = unittest.makeSuite(TestScore)
-suite.addTest(unittest.makeSuite(TestNote))
-suite.addTest(unittest.makeSuite(TestBarProxy))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestScore)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestNote))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestBarProxy))

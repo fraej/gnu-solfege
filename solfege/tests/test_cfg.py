@@ -5,7 +5,6 @@
 
 
 import unittest
-import codecs
 import doctest
 import os.path
 from solfege.testlib import outdir
@@ -35,13 +34,12 @@ class Test_parse_file_into_dict(unittest.TestCase):
 
     def test_parse_utf8(self):
         filename = os.path.join(outdir, 'ok-utf8.ini')
-        outfile = codecs.open(filename, 'w', 'utf-8')
-        outfile.write("# This file is in utf8 encoding\n"
-                      "[sound]\n"
-                      "s=/home/Usér/bin/prog\n"
-                      "f=1.1\n"
-                      "i=3\n")
-        outfile.close()
+        with open(filename, 'w', encoding='utf-8') as outfile:
+            outfile.write("# This file is in utf8 encoding\n"
+                          "[sound]\n"
+                          "s=/home/Usér/bin/prog\n"
+                          "f=1.1\n"
+                          "i=3\n")
         d = {}
         parse_file_into_dict(d, filename)
         self.assertEqual(d['sound']['i'], '3')
@@ -56,5 +54,5 @@ class Test_parse_file_into_dict(unittest.TestCase):
         self.assertTrue(isinstance(cfg.get_string("abc/def"), str))
         self.assertTrue(isinstance(cfg.get_string("abc/ghi"), str))
 
-suite = unittest.makeSuite(Test_parse_file_into_dict)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(Test_parse_file_into_dict)
 suite.addTest(doctest.DocTestSuite(solfege.cfg))

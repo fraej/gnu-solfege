@@ -18,24 +18,44 @@
 import os
 import sys
 
-from gi.repository import Gtk
-from gi.repository import GdkPixbuf
+from gi.repository import Gio, Gtk, GdkPixbuf
 
 
-class BaseIconFactory(Gtk.IconFactory):
+_ICON_SIZE_PIXELS = {
+    Gtk.IconSize.MENU: 16,
+    Gtk.IconSize.SMALL_TOOLBAR: 16,
+    Gtk.IconSize.LARGE_TOOLBAR: 24,
+    Gtk.IconSize.BUTTON: 16,
+    Gtk.IconSize.DND: 32,
+    Gtk.IconSize.DIALOG: 48,
+}
+
+
+class BaseIconFactory(object):
+    """Load Solfege assets without GTK's deprecated stock icon API."""
 
     def __init__(self, widget, datadir):
-        Gtk.IconFactory.__init__(self)
         self.datadir = datadir
-        self.add_default()
+        self._icons = {}
 
     def add_icons(self, icons):
-        for stock_id, filename in list(icons.items()):
-            if os.path.isfile(os.path.join(self.datadir, filename)):
-                iconset = Gtk.IconSet(GdkPixbuf.Pixbuf.new_from_file(os.path.join(self.datadir, filename)))
-                self.add(stock_id, iconset)
+        for icon_id, filename in list(icons.items()):
+            path = os.path.join(self.datadir, filename)
+            if os.path.isfile(path):
+                self._icons[icon_id] = path
             else:
                 print("File not found: %s" % filename, file=sys.stderr)
+
+    def get_pixbuf(self, icon_id, icon_size=Gtk.IconSize.DIALOG):
+        size = _ICON_SIZE_PIXELS.get(icon_size, 48)
+        return GdkPixbuf.Pixbuf.new_from_file_at_scale(
+            self._icons[icon_id], size, size, True)
+
+    def get_gicon(self, icon_id):
+        return Gio.FileIcon.new(Gio.File.new_for_path(self._icons[icon_id]))
+
+    def new_image(self, icon_id, icon_size=Gtk.IconSize.BUTTON):
+        return Gtk.Image.new_from_pixbuf(self.get_pixbuf(icon_id, icon_size))
 
 
 class EditorIconFactory(BaseIconFactory):
@@ -46,13 +66,13 @@ class EditorIconFactory(BaseIconFactory):
     def __init__(self, widget, datadir):
         BaseIconFactory.__init__(self, widget, datadir)
         icons = {'solfege-icon': "graphics/solfege.svg",
-            'solfege-sharp': "graphics/sharp.png",
-            'solfege-double-sharp': "graphics/double-sharp.png",
-            'solfege-flat': "graphics/flat.png",
-            'solfege-double-flat': "graphics/double-flat.png",
-            'solfege-natural': "graphics/natural.png",
-            'solfege-erase': "graphics/erase.png",
-            'solfege-notehead': "graphics/notehead.png"}
+            'solfege-sharp': "graphics/sharp.svg",
+            'solfege-double-sharp': "graphics/double-sharp.svg",
+            'solfege-flat': "graphics/flat.svg",
+            'solfege-double-flat': "graphics/double-flat.svg",
+            'solfege-natural': "graphics/natural.svg",
+            'solfege-erase': "graphics/erase.svg",
+            'solfege-notehead': "graphics/notehead.svg"}
         self.add_icons(icons)
 
 

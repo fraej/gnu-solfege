@@ -70,5 +70,5 @@ class TestMusicalPitch(unittest.TestCase):
             p = MusicalPitch.new_from_notename(n)
             self.assertEqual(p.pitch_class(), i)
 
-suite = unittest.makeSuite(TestMusicalPitch)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMusicalPitch)
 suite.addTest(doctest.DocTestSuite(solfege.mpd.musicalpitch))

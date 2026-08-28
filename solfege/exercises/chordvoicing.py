@@ -117,7 +117,7 @@ class Gui(abstract.LessonbasedGui):
         ##################
         frame = Gtk.Frame(label=_("Identify chord type"))
         hbox.pack_start(frame, True, True, 0)
-        self.g_chordtype_box = Gtk.VBox()
+        self.g_chordtype_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_chordtype_box.set_border_width(gu.PAD_SMALL)
         frame.add(self.g_chordtype_box)
 
@@ -127,16 +127,16 @@ class Gui(abstract.LessonbasedGui):
         self.g_stacking_frame = Gtk.Frame(label=_("Chord voicing"))
         self.g_stacking_frame.set_sensitive(False)
         hbox.pack_start(self.g_stacking_frame, True, True, 0)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_border_width(gu.PAD_SMALL)
         self.g_stacking_frame.add(vbox)
-        t = Gtk.Table(1, 1, 1)
+        t = gu.LegacyGrid(row_homogeneous=True, column_homogeneous=True)
         vbox.pack_start(t, True, True, 0)
-        self.g_source = Gtk.VBox()
+        self.g_source = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         t.attach(self.g_source, 0, 1, 0, 1, Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
-        self.g_answer = Gtk.VBox()
+        self.g_answer = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         t.attach(self.g_answer, 1, 2, 0, 1, Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL)
-        self.g_redo = Gtk.Button("<<<")
+        self.g_redo = Gtk.Button(label="<<<")
         self.g_redo.connect('clicked', lambda o, self=self: self.fill_stacking_frame())
         vbox.pack_end(self.g_redo, False, False, 0)
 
@@ -200,7 +200,7 @@ class Gui(abstract.LessonbasedGui):
         v.sort()
         for n in v:
             nn = mpd.MusicalPitch.new_from_notename(n)
-            b = Gtk.Button(nn.get_user_notename())
+            b = Gtk.Button(label=nn.get_user_notename())
             b.connect('clicked', self.on_notebutton_clicked, nn.get_notename(), nn.get_user_notename())
             self.g_source.pack_end(b, False, False, 0)
             b.show()
@@ -261,7 +261,7 @@ class Gui(abstract.LessonbasedGui):
             self.g_flashbar.flash(_("Type is already solved, now specify voicing."))
 
     def on_notebutton_clicked(self, btn, n, user_notename):
-        newb = Gtk.Button(user_notename)
+        newb = Gtk.Button(label=user_notename)
         newb.show()
         btn.destroy()
         self.m_answer.append(n)
@@ -292,7 +292,8 @@ class Gui(abstract.LessonbasedGui):
         v = self.m_t.m_P.get_music_as_notename_list('music')
         v.sort(key=lambda n: mpd.notename_to_int(n))
         for n in v:
-            b = Gtk.Button(mpd.MusicalPitch.new_from_notename(n).get_user_octave_notename())
+            b = Gtk.Button(label=mpd.MusicalPitch.new_from_notename(
+                n).get_user_octave_notename())
             b.get_children()[0].set_use_markup(1)
             b.show()
             self.g_answer.pack_end(b, False, False, 0)
@@ -301,7 +302,7 @@ class Gui(abstract.LessonbasedGui):
         for x in self.g_chordtype_box.get_children():
             x.destroy()
         for name in [q.name for q in self.m_t.m_P.iterate_questions_with_unique_names()]:
-            b = Gtk.Button(name)
+            b = Gtk.Button(label=name)
             b.m_chordtype = name.cval
             self.g_chordtype_box.pack_start(b, False, False, 0)
             b.connect('clicked', self.on_chordtype_clicked, name.cval)

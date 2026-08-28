@@ -37,13 +37,15 @@ class NotenameSpinButton(Gtk.Box):
         self.pack_start(self.g_label, False, False, 6)
         # up
         eb1 = Gtk.Button()
-        eb1.add(Gtk.Arrow(Gtk.ArrowType.UP, Gtk.ShadowType.OUT))
+        eb1.add(Gtk.Image.new_from_icon_name(
+            "pan-up-symbolic", Gtk.IconSize.BUTTON))
         eb1.connect('button-press-event', self.on_up_press)
         eb1.connect('button-release-event', self.on_up_release)
         self.pack_start(eb1, False, False, 0)
         # down
         eb2 = Gtk.Button()
-        eb2.add(Gtk.Arrow(Gtk.ArrowType.DOWN, Gtk.ShadowType.IN))
+        eb2.add(Gtk.Image.new_from_icon_name(
+            "pan-down-symbolic", Gtk.IconSize.BUTTON))
         eb2.connect('button-press-event', self.on_down_press)
         eb2.connect('button-release-event', self.on_down_release)
         self.pack_start(eb2, False, False, 0)
@@ -61,7 +63,7 @@ class NotenameSpinButton(Gtk.Box):
 
     def on_up_release(self, eb, ev):
         if self.m_timeout:
-            GObject.source_remove(self.m_timeout)
+            GLib.source_remove(self.m_timeout)
             self.m_timeout = None
 
     def on_up_timeout(self, *v):
@@ -82,23 +84,23 @@ class NotenameSpinButton(Gtk.Box):
 
     def on_down_press(self, eb, ev):
         if self.m_timeout:
-            GObject.source_remove(self.m_timeout)
+            GLib.source_remove(self.m_timeout)
             self.m_timeout = None
         if ev.type == Gdk.EventType.BUTTON_PRESS:
             if self.m_value > 0:
                 self.down()
             if self.m_value > 0:
-                self.m_timeout = GObject.timeout_add(DELAY1, self.on_down_timeout)
+                self.m_timeout = GLib.timeout_add(DELAY1, self.on_down_timeout)
 
     def on_down_release(self, eb, ev):
         if self.m_timeout:
-            GObject.source_remove(self.m_timeout)
+            GLib.source_remove(self.m_timeout)
             self.m_timeout = None
 
     def on_down_timeout(self, *v):
         if self.m_value > 0:
             self.down()
-            self.m_timeout = GObject.timeout_add(DELAY2, self.on_down_timeout)
+            self.m_timeout = GLib.timeout_add(DELAY2, self.on_down_timeout)
         else:
             self.m_timeout = None
         # Return False to make GLib remove the timeout that called

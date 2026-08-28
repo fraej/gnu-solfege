@@ -34,13 +34,13 @@ from solfege.mpd import engravers
 from solfege.mpd.musicdisplayer import MusicDisplayer
 
 
-class RhythmWidgetController(Gtk.HBox):
+class RhythmWidgetController(Gtk.Box):
 
     def __init__(self, rwidget):
         """
         rwidget is the RhythmWidget we are controlling
         """
-        Gtk.HBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
         self.g_rwidget = rwidget
         self.g_rwidget.connect('cursor-moved', self.on_cursor_moved)
         for k in (1, 2, 4, 8, 16, 32):
@@ -113,7 +113,7 @@ class RhythmWidgetController(Gtk.HBox):
         b.add(im)
         b.connect('clicked', self.ctrl_on_delete)
         self.pack_start(b, False, False, 0)
-        self.g_mode = Gtk.ToggleButton(_i("insert-overwrite|INSRT"))
+        self.g_mode = Gtk.ToggleButton(label=_i("insert-overwrite|INSRT"))
         self.g_mode.connect('clicked', self.ctrl_on_ins)
         self.g_rwidget.m_ins_mode = not self.g_mode.get_active()
         self.pack_start(self.g_mode, False, False, 0)
@@ -372,7 +372,7 @@ class TestWin(Gtk.Window):
 
     def __init__(self):
         Gtk.Window.__init__(self)
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(vbox)
         self.set_default_size(600, 400)
         self.w = RhythmWidget()
@@ -388,12 +388,16 @@ class TestWin(Gtk.Window):
         vbox.pack_start(c, False, False, 0)
         c.show()
         c.set_editable(True)
-        self.connect('delete_event', self.quit)
-
-    def quit(self, *w):
-        Gtk.main_quit()
+        self.connect('delete_event', lambda window, event: window.destroy())
 
 if __name__ == '__main__':
-    w = TestWin()
-    w.show_all()
-    Gtk.main()
+    application = Gtk.Application(
+        application_id="org.gnu.solfege.RhythmWidgetTest")
+
+    def activate(app):
+        window = TestWin()
+        app.add_window(window)
+        window.show_all()
+
+    application.connect('activate', activate)
+    application.run([])

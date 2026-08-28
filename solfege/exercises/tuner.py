@@ -22,6 +22,7 @@ since it will try to import solfege_c_midi even if it is not available.
 """
 
 from gi.repository import GObject
+from gi.repository import GLib
 
 from solfege import abstract
 from solfege import gu
@@ -48,8 +49,8 @@ class Gui(abstract.Gui):
 
     def on_start_practise(self):
         soundcard.solfege_c_midi.dsp_open_record()
-        #self.__idle_tag = GObject.idle_add(self.update_view)
-        self.__idle_tag = GObject.timeout_add(300, self.update_view)
+        #self.__idle_tag = GLib.idle_add(self.update_view)
+        self.__idle_tag = GLib.timeout_add(300, self.update_view)
 
     def update_view(self):
         freq = soundcard.solfege_c_midi.idle_loop()
@@ -62,5 +63,5 @@ class Gui(abstract.Gui):
 
     def on_end_practise(self):
         # Gtk.idle_remove(self.__idle_tag)
-        GObject.source_remove(self.__idle_tag)
+        GLib.source_remove(self.__idle_tag)
         soundcard.solfege_c_midi.dsp_close()

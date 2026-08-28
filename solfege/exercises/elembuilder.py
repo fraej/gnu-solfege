@@ -83,9 +83,11 @@ class MultiButton(Gtk.Button):
         if self.m_marked_wrong:
             return
         self.m_marked_wrong = True
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         assert len(self.get_children()) == 1
-        self.get_children()[0].reparent(vbox)
+        content = self.get_children()[0]
+        self.remove(content)
+        vbox.pack_start(content, True, True, 0)
         self.add(vbox)
         label = Gtk.Label()
         label.set_markup("<span size='small'>%s</span>" % gu.escape(_("Wrong")))
@@ -108,7 +110,7 @@ class Gui(abstract.LessonbasedGui):
         self.g_answer_frame = Gtk.Frame()
         self.g_answer_frame.set_shadow_type(Gtk.ShadowType.IN)
         self.practise_box.pack_start(self.g_answer_frame, False, False, 0)
-        self.g_answer = Gtk.HBox()
+        self.g_answer = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_answer_frame.add(self.g_answer)
         self.g_answer_frame.show_all()
         # Flashbar
@@ -191,7 +193,9 @@ class Gui(abstract.LessonbasedGui):
                 # disappearing.
                 if self.g_answer.get_children():
                     for btn in self.g_answer.get_children():
-                        max_button_height = max(max_button_height, btn.size_request().height)
+                        max_button_height = max(
+                            max_button_height,
+                            btn.get_preferred_size()[1].height)
                     self.g_answer_frame.set_size_request(-1, max_button_height)
 
     def on_backspace(self, widget=None):

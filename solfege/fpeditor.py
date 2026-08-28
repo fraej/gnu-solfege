@@ -41,31 +41,31 @@ from solfege import lessonfile
 from solfege import osutils
 
 
-class LessonFilePreviewWidget(Gtk.VBox):
+class LessonFilePreviewWidget(Gtk.Box):
 
     def __init__(self, model):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.m_model = model
         self.set_size_request(200, 200)
         l = Gtk.Label()
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.set_markup("<b>Title:</b>")
         self.pack_start(l, False, False, 0)
         self.g_title = Gtk.Label()
-        self.g_title.set_alignment(0.0, 0.5)
+        self.g_title.set_xalign(0.0)
         self.pack_start(self.g_title, False, False, 0)
         l = Gtk.Label()
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.set_markup("<b>Module:</b>")
         self.pack_start(l, False, False, 0)
         self.g_module = Gtk.Label()
-        self.g_module.set_alignment(0.0, 0.5)
+        self.g_module.set_xalign(0.0)
         self.pack_start(self.g_module, False, False, 0)
         l = Gtk.Label()
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.set_markup("<b>Used in topcis:</b>")
         self.pack_start(l, False, False, 0)
-        self.g_topic_box = Gtk.VBox()
+        self.g_topic_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(self.g_topic_box, False, False, 0)
         self.show_all()
 
@@ -82,11 +82,11 @@ class LessonFilePreviewWidget(Gtk.VBox):
                 self.g_ok_button.set_sensitive(True)
                 for x in self.m_model.iterate_topics_for_file(fn):
                     l = Gtk.Label(label=x)
-                    l.set_alignment(0.0, 0.5)
+                    l.set_xalign(0.0)
                     self.g_topic_box.pack_start(l, False, False, 0)
                 if not self.g_topic_box.get_children():
                     l = Gtk.Label(label="-")
-                    l.set_alignment(0.0, 0.5)
+                    l.set_xalign(0.0)
                     self.g_topic_box.pack_start(l, False, False, 0)
             except (lessonfile.InfoCache.FileNotFound,
                     lessonfile.InfoCache.FileNotLessonfile):
@@ -101,12 +101,13 @@ class LessonFilePreviewWidget(Gtk.VBox):
 class SelectLessonFileDialog(Gtk.FileChooserDialog):
 
     def __init__(self, parent):
-        Gtk.FileChooserDialog.__init__(self, _("Select lesson file"),
-            parent=parent,
-            buttons=(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,))
+        Gtk.FileChooserDialog.__init__(
+            self, title=_("Select lesson file"), transient_for=parent,
+            action=Gtk.FileChooserAction.OPEN)
+        self.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
         self.set_select_multiple(True)
         pv = LessonFilePreviewWidget(parent.m_model)
-        pv.g_ok_button = self.add_button("gtk-ok", Gtk.ResponseType.OK)
+        pv.g_ok_button = self.add_button(_("_OK"), Gtk.ResponseType.OK)
         pv.g_ok_button.set_sensitive(False)
         pv.show()
         self.set_preview_widget(pv)
@@ -116,7 +117,8 @@ class SelectLessonFileDialog(Gtk.FileChooserDialog):
 class SelectLessonfileBySearchDialog(Gtk.Dialog):
 
     def __init__(self, w):
-        Gtk.Dialog.__init__(self, buttons=(Gtk.STOCK_CLOSE, Gtk.ResponseType.ACCEPT), parent=w)
+        Gtk.Dialog.__init__(self, transient_for=w)
+        self.add_button(_("_Close"), Gtk.ResponseType.ACCEPT)
         view = SearchView(_('Search for exercises. Each exercise you click will be added to the section of the front page.'),
             fields=['link-with-filename-tooltip', 'module'])
         view.on_link_clicked = self.on_link_clicked
@@ -189,115 +191,115 @@ class MyEntry(Gtk.Entry):
             return True
 
 
-class Section(Gtk.VBox):
+class Section(Gtk.Box):
     """
     A section consists of a heading and a list of links.
     self.g_link_box is a vbox that contains the links.
     """
 
     def __init__(self, model, parent):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.m_model = model
         self.m_parent = parent
         assert isinstance(model, pd.LinkList)
-        self.heading_hbox = hbox = Gtk.HBox()
+        self.heading_hbox = hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(6)
         self.pack_start(hbox, False, False, 0)
         self.g_heading = Gtk.Label()
-        self.g_heading.set_alignment(0.0, 0.5)
+        self.g_heading.set_xalign(0.0)
         # FIXME escape m_name
         self.g_heading.set_markup("<b>%s</b>" % model.m_name)
         hbox.pack_start(self.g_heading, False, False, 0)
         #
-        button_hbox = Gtk.HBox()
+        button_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         button_hbox.set_spacing(0)
         hbox.pack_start(button_hbox, False, False, 0)
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_EDIT, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("document-edit-symbolic",
+                                          Gtk.IconSize.MENU)
         button = Gtk.Button()
         button.add(im)
         button.connect('clicked', self.on_edit_heading)
         button_hbox.pack_start(button, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_ADD, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("list-add-symbolic",
+                                          Gtk.IconSize.MENU)
         button = Gtk.Button()
         button.add(im)
         button.connect('button-release-event', self.on_add)
         button_hbox.pack_start(button, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_REMOVE, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("list-remove-symbolic",
+                                          Gtk.IconSize.MENU)
         button = Gtk.Button()
         button.add(im)
         button.connect('button-release-event', self.on_remove)
         button_hbox.pack_start(button, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_CUT, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("edit-cut-symbolic",
+                                          Gtk.IconSize.MENU)
         b = Gtk.Button()
         b.add(im)
         b.connect('clicked', self.on_cut)
         button_hbox.pack_start(b, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_PASTE, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("edit-paste-symbolic",
+                                          Gtk.IconSize.MENU)
         b = Gtk.Button()
         b.add(im)
         b.connect('clicked', self.on_paste, -1)
         Editor.clipboard.register_paste_button(b, (pd.LinkList, pd.Page, str))
         button_hbox.pack_start(b, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_GO_DOWN, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("go-down-symbolic",
+                                          Gtk.IconSize.MENU)
         self.g_move_down_btn = Gtk.Button()
         self.g_move_down_btn.add(im)
         self.g_move_down_btn.connect('clicked',
             self.m_parent.move_section_down, self)
         button_hbox.pack_start(self.g_move_down_btn, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_GO_UP, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("go-up-symbolic",
+                                          Gtk.IconSize.MENU)
         self.g_move_up_btn = Gtk.Button()
         self.g_move_up_btn.add(im)
         self.g_move_up_btn.connect('clicked',
             self.m_parent.move_section_up, self)
         button_hbox.pack_start(self.g_move_up_btn, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_GO_BACK, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("go-previous-symbolic",
+                                          Gtk.IconSize.MENU)
         self.g_move_left_btn = Gtk.Button()
         self.g_move_left_btn.add(im)
         self.g_move_left_btn.connect('clicked',
             parent.m_parent.on_move_section_left, self)
         button_hbox.pack_start(self.g_move_left_btn, False, False, 0)
         #
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_GO_FORWARD, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("go-next-symbolic",
+                                          Gtk.IconSize.MENU)
         self.g_move_right_btn = Gtk.Button()
         self.g_move_right_btn.add(im)
         self.g_move_right_btn.connect('clicked',
             parent.m_parent.on_move_section_right, self)
         button_hbox.pack_start(self.g_move_right_btn, False, False, 0)
         #
-        self.g_link_box = Gtk.VBox()
+        self.g_link_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.pack_start(self.g_link_box, False, False, 0)
         for link in self.m_model:
             self.g_link_box.pack_start(self.create_linkrow(link), True, True, 0)
         # The button to click to add a new link
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.pack_start(hbox, True, True, 0)
 
         # The popup menu that will popup from the STOCK_ADD button
         self.g_add_popup = menu = Gtk.Menu()
         menu.show()
-        item = Gtk.MenuItem(_("Add link to new page"))
+        item = Gtk.MenuItem(label=_("Add link to new page"))
         item.connect('activate', self.on_add_link_to_new_page)
         menu.append(item)
-        item = Gtk.MenuItem(_("Add link to exercise"))
+        item = Gtk.MenuItem(label=_("Add link to exercise"))
         item.connect('activate', self.on_add_link)
         menu.append(item)
-        item = Gtk.MenuItem(_("Add link by searching for exercises"))
+        item = Gtk.MenuItem(label=_("Add link by searching for exercises"))
         item.connect('activate', self.on_add_link_by_search)
         menu.append(item)
         menu.show_all()
@@ -305,25 +307,26 @@ class Section(Gtk.VBox):
         # The pop menu shown when right clicking on a link to an
         # exercise or a subpage.
         self.popup_menu = m = Gtk.Menu()
-        item = Gtk.ImageMenuItem(Gtk.STOCK_DELETE)
+        item = Gtk.MenuItem.new_with_mnemonic(_("_Delete"))
         item.connect('activate', self.on_delete_link)
         m.append(item)
-        item = Gtk.ImageMenuItem(Gtk.STOCK_CUT)
+        item = Gtk.MenuItem.new_with_mnemonic(_("Cu_t"))
         item.connect('activate', self.on_cut_link)
         m.append(item)
-        m._paste_item = item = Gtk.ImageMenuItem(Gtk.STOCK_PASTE)
+        m._paste_item = item = Gtk.MenuItem.new_with_mnemonic(_("_Paste"))
         item.connect('activate', self.on_paste)
         m.append(item)
-        m._edit_item = item = Gtk.ImageMenuItem(Gtk.STOCK_EDIT)
+        m._edit_item = item = Gtk.MenuItem.new_with_mnemonic(_("_Edit"))
         item.connect('activate', self.on_edit_linktext)
         m.append(item)
-        m._up_item = item = Gtk.ImageMenuItem(Gtk.STOCK_GO_UP)
+        m._up_item = item = Gtk.MenuItem.new_with_mnemonic(_("Move _Up"))
         item.connect('activate', self.on_move_link_up)
         m.append(item)
-        m._down_item = item = Gtk.ImageMenuItem(Gtk.STOCK_GO_DOWN)
+        m._down_item = item = Gtk.MenuItem.new_with_mnemonic(_("Move _Down"))
         item.connect('activate', self.on_move_link_down)
         m.append(item)
-        m._edit_file_item = item = Gtk.ImageMenuItem(Gtk.STOCK_EDIT)
+        m._edit_file_item = item = Gtk.MenuItem.new_with_mnemonic(
+            _("Edit _File"))
         item.connect('activate', self.on_edit_file)
         m.append(item)
         m.show_all()
@@ -398,7 +401,7 @@ class Section(Gtk.VBox):
         self.g_link_box.pack_start(self.create_linkrow(page), True, True, 0)
 
     def create_linkrow(self, link_this):
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
 
         def ff(btn, page):
             if id(page) in editor_of(self).m_page_mapping:
@@ -456,7 +459,7 @@ class Section(Gtk.VBox):
             linkbutton.set_label(text)
             self.m_model[self._idx].m_name = text
             linkbutton.show()
-            linkbutton.get_children()[0].set_alignment(0.0, 0.5)
+            linkbutton.get_children()[0].set_xalign(0.0)
             entry.destroy()
 
         entry = MyEntry(linkbutton.get_label(), finish_edit)
@@ -521,27 +524,27 @@ class Section(Gtk.VBox):
         self.g_link_box.reorder_child(self.g_link_box.get_children()[idx], idx + 1)
 
 
-class Column(Gtk.VBox):
+class Column(Gtk.Box):
 
     def __init__(self, model, parent):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.set_spacing(gu.hig.SPACE_MEDIUM)
         self.m_model = model
         self.m_parent = parent
         assert isinstance(model, pd.Column)
-        self.g_section_box = Gtk.VBox()
+        self.g_section_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_section_box.set_spacing(gu.hig.SPACE_MEDIUM)
         self.pack_start(self.g_section_box, False, False, 0)
         for section in model:
             assert isinstance(section, pd.LinkList)
             gui_section = Section(section, self)
             self.g_section_box.pack_start(gui_section, False, False, 0)
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.pack_start(hbox, False, False, 0)
-        b = Gtk.Button(_("Add section"))
+        b = Gtk.Button(label=_("Add section"))
         hbox.pack_start(b, False, False, 0)
         b.connect('clicked', self.on_add_section)
-        b = Gtk.Button(stock=Gtk.STOCK_PASTE)
+        b = Gtk.Button.new_with_mnemonic(_("_Paste"))
         b.connect('clicked', self.on_paste)
         Editor.clipboard.register_paste_button(b, pd.LinkList)
         hbox.pack_start(b, False, False, 0)
@@ -598,20 +601,20 @@ class Column(Gtk.VBox):
         self.g_section_box.pack_start(sect, False, False, 0)
 
 
-class Page(Gtk.VBox):
+class Page(Gtk.Box):
 
     def __init__(self, model, parent):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.m_model = model
         self.m_parent = parent
         sc = Gtk.ScrolledWindow()
         sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         self.pack_start(sc, True, True, 0)
-        self.g_column_box = Gtk.HBox()
+        self.g_column_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_column_box.set_spacing(gu.hig.SPACE_LARGE)
         self.g_column_box.set_border_width(gu.hig.SPACE_SMALL)
         # We pack column into this box
-        sc.add_with_viewport(self.g_column_box)
+        sc.add(self.g_column_box)
         self.show_all()
         if model:
             self.update_from_model()
@@ -631,9 +634,9 @@ class Page(Gtk.VBox):
         section_idx = section.m_parent.g_section_box.get_children().index(section)
         if column_idx > 0:
             to_column = self.g_column_box.get_children()[column_idx - 1]
-            section.reparent(to_column.g_section_box)
+            section.m_parent.g_section_box.remove(section)
+            to_column.g_section_box.pack_start(section, False, False, 0)
             section.m_parent = to_column
-            to_column.g_section_box.set_child_packing(section, False, False, 0, Gtk.PACK_START)
             self.m_model[column_idx - 1].append(self.m_model[column_idx][section_idx])
             del self.m_model[column_idx][section_idx]
             # Remove the right-most column if we moved the
@@ -651,9 +654,9 @@ class Page(Gtk.VBox):
         if column_idx == len(self.g_column_box.get_children()) - 1:
             self.on_add_column()
         to_column = self.g_column_box.get_children()[column_idx + 1]
-        section.reparent(to_column.g_section_box)
+        section.m_parent.g_section_box.remove(section)
+        to_column.g_section_box.pack_start(section, False, False, 0)
         section.m_parent = to_column
-        to_column.g_section_box.set_child_packing(section, False, False, 0, Gtk.PACK_START)
         self.m_model[column_idx + 1].append(self.m_model[column_idx][section_idx])
         del self.m_model[column_idx][section_idx]
         self.update_buttons()
@@ -714,13 +717,10 @@ class Editor(Gtk.Window, gu.EditorDialogBase):
         logging.debug("fpeditor.Editor.__init__(%s)", filename)
         gu.EditorDialogBase.__init__(self, filename)
         self.set_default_size(800, 600)
-        self.g_main_box = Gtk.VBox()
+        self.g_main_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.add(self.g_main_box)
-        self.g_actiongroup.add_actions([
-            ('GoBack', Gtk.STOCK_GO_BACK, None, None, None, self.go_back),
-        ])
         self.setup_toolbar()
-        self.g_title_hbox = Gtk.HBox()
+        self.g_title_hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_title_hbox.set_spacing(gu.hig.SPACE_SMALL)
         self.g_title_hbox.set_border_width(gu.hig.SPACE_SMALL)
         label = Gtk.Label()
@@ -774,7 +774,7 @@ class Editor(Gtk.Window, gu.EditorDialogBase):
             self.g_title_hbox.hide()
         else:
             self.g_title_hbox.show()
-        self.g_ui_manager.get_widget("/Toolbar/GoBack").set_sensitive(
+        self.g_toolbar_buttons['GoBack'].set_sensitive(
             not isinstance(self.g_visible_page.m_parent, Editor))
 
     def go_back(self, *action):
@@ -784,29 +784,12 @@ class Editor(Gtk.Window, gu.EditorDialogBase):
         self.m_model.m_name = widget.get_text()
 
     def setup_toolbar(self):
-        self.g_ui_manager.insert_action_group(self.g_actiongroup, 0)
-        uixml = """
-        <ui>
-         <toolbar name='Toolbar'>
-          <toolitem action='GoBack'/>
-          <toolitem action='New'/>
-          <toolitem action='Open'/>
-          <toolitem action='Save'/>
-          <toolitem action='SaveAs'/>
-          <toolitem action='Close'/>
-          <toolitem action='Help'/>
-         </toolbar>
-         <accelerator action='Close'/>
-         <accelerator action='New'/>
-         <accelerator action='Open'/>
-         <accelerator action='Save'/>
-        </ui>
-        """
-        self.g_ui_manager.add_ui_from_string(uixml)
-        toolbar = self.g_ui_manager.get_widget("/Toolbar")
+        toolbar = self.create_editor_toolbar([
+            ('GoBack', _("_Back"), 'go-previous-symbolic',
+             self.go_back, None),
+            'New', 'Open', 'Save', 'SaveAs', 'Close', 'Help'])
         self.g_main_box.pack_start(toolbar, False, False, 0)
         self.g_main_box.reorder_child(toolbar, 0)
-        self.g_ui_manager.get_widget("/Toolbar").set_style(Gtk.ToolbarStyle.BOTH)
 
     def destroy_window(self, window_id):
         """
@@ -894,7 +877,10 @@ class Editor(Gtk.Window, gu.EditorDialogBase):
         ev2.add(ev)
         ev.set_name("DIALOGWARNING")
         label = Gtk.Label()
-        label.set_padding(gu.hig.SPACE_MEDIUM, gu.hig.SPACE_MEDIUM)
+        label.set_margin_start(gu.hig.SPACE_MEDIUM)
+        label.set_margin_end(gu.hig.SPACE_MEDIUM)
+        label.set_margin_top(gu.hig.SPACE_MEDIUM)
+        label.set_margin_bottom(gu.hig.SPACE_MEDIUM)
         ev.add(label)
         label.set_markup(_("<b>IMPORTANT:</b> Your front page file <b>must</b> be saved in a subdirectory below the directory named exercises. See the user manual for details."))
         dialog.set_extra_widget(ev2)
@@ -902,7 +888,14 @@ class Editor(Gtk.Window, gu.EditorDialogBase):
         return dialog
 
 if __name__ == '__main__':
-    Gtk.link_button_set_uri_hook(lambda a, b: None)
-    e = Editor()
-    e.load_file("learningtrees/learningtree.txt")
-    Gtk.main()
+    application = Gtk.Application(
+        application_id="org.gnu.solfege.FrontPageEditor")
+
+    def activate(app):
+        editor = Editor()
+        app.add_window(editor)
+        editor.load_file("learningtrees/learningtree.txt")
+        editor.show_all()
+
+    application.connect('activate', activate)
+    application.run([])

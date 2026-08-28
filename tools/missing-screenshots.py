@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 import os
 import glob
@@ -13,8 +13,8 @@ for lang in languages:
     lang_files = [os.path.split(n)[1] for n in glob.glob("%s/figures/*.png" % lang)]
     missing_files = [n for n in C_files if n not in lang_files and n not in IGNORE]
     if missing_files:
-        print "\nMissing screenshots for %s locale" % os.path.split(lang)[1]
-        print missing_files
+        print("\nMissing screenshots for %s locale" % os.path.split(lang)[1])
+        print(missing_files)
         exitval = -1
 
 sys.exit(exitval)

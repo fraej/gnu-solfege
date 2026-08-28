@@ -10,6 +10,9 @@ import os
 import shutil
 import atexit
 
+import gi
+gi.require_version("Gtk", "3.0")
+
 # we need this hack because doctest messes with _
 
 
@@ -98,6 +101,7 @@ def iter_suite(suite):
 
 
 def rmtemp():
+    solfege.db.conn.close()
     shutil.rmtree(testlib.outdir)
     if os.path.exists(testlib.TmpFileBase.tmpdir):
         os.rmdir(testlib.TmpFileBase.tmpdir)

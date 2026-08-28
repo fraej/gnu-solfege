@@ -79,7 +79,8 @@ def parse_key_string(string):
 
 def tLabel(table, x1, x2, y1, y2, text="", xalign=0.0, yalign=0.5, xoptions=Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL, yoptions=Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL, xpadding=0, ypadding=0):
     label = Gtk.Label(label=text)
-    label.set_alignment(xalign, yalign)
+    label.set_xalign(xalign)
+    label.set_yalign(yalign)
     table.attach(label, x1, x2, y1, y2, xoptions=xoptions, yoptions=yoptions, xpadding=xpadding, ypadding=ypadding)
     return label
 
@@ -133,8 +134,10 @@ class nSpinButton(Gtk.SpinButton, cfg.ConfigUtils):  # FIXME (??what is there to
 
 def tSpinButton(table, x1, x2, y1, y2,
                 value, lower, upper, step_incr=1, page_incr=10, callback=None):
-    adj = Gtk.Adjustment(value, lower, upper, step_incr, page_incr)
-    spin = Gtk.SpinButton(adj, digits=0)
+    adj = Gtk.Adjustment(value=value, lower=lower, upper=upper,
+                         step_increment=step_incr,
+                         page_increment=page_incr)
+    spin = Gtk.SpinButton(adjustment=adj, digits=0)
     if callback:
         spin.connect('value-changed', callback)
     table.attach(spin, x1, x2, y1, y2)
@@ -142,14 +145,14 @@ def tSpinButton(table, x1, x2, y1, y2,
 
 
 def bHBox(pack_into, expand=True, fill=True, padding=0):
-    b = Gtk.HBox(False, 0)
+    b = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
     b.show()
     pack_into.pack_start(b, expand, fill, padding)
     return b
 
 
 def bVBox(pack_into, expand=True, fill=True, padding=0):
-    b = Gtk.VBox(False, 0)
+    b = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
     pack_into.pack_start(b, expand, fill, padding)
     return b
 
@@ -157,7 +160,7 @@ def bVBox(pack_into, expand=True, fill=True, padding=0):
 class nCheckButton(Gtk.CheckButton, cfg.ConfigUtils):
 
     def __init__(self, exname, name, label=None, default_value=0, callback=None):
-        Gtk.CheckButton.__init__(self, label)
+        Gtk.CheckButton.__init__(self, label=label)
         #cfg.ConfigUtils.__init__(self, exname)
         cfg.ConfigUtils.__dict__['__init__'](self, exname)
         self.set_use_underline(True)
@@ -269,7 +272,7 @@ class PercussionInstrumentMenu(Gtk.Menu):
     def __init__(self, callback):
         Gtk.Menu.__init__(self)
         for idx, pname in enumerate(soundcard.percussion_names):
-            menuitem = Gtk.MenuItem(pname)
+            menuitem = Gtk.MenuItem(label=pname)
             menuitem.connect('activate', callback, idx)
             self.append(menuitem)
             menuitem.show()
@@ -308,7 +311,7 @@ class FlashBar(Gtk.Frame):
         self.set_shadow_type(Gtk.ShadowType.IN)
         self.__stack = []
         self.__label = HarmonicProgressionLabel('')
-        self.__content = Gtk.HBox(False, 0)
+        self.__content = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         self.__content.show()
         self.add(self.__content)
         self.__timeout = None
@@ -376,8 +379,9 @@ class FlashBar(Gtk.Frame):
                 w.set_name("FlashBarLabel")
                 self.__content.pack_start(w, False, False, 0)
             w.show()
-        self.m_sx = max(self.size_request().width, self.m_sx)
-        self.m_sy = max(self.size_request().height, self.m_sy)
+        unused, natural_size = self.get_preferred_size()
+        self.m_sx = max(natural_size.width, self.m_sx)
+        self.m_sy = max(natural_size.height, self.m_sy)
         self.set_size_request(self.m_sx, self.m_sy)
         if self.__timeout:
             if GLib.source_remove(self.__timeout):
@@ -415,13 +419,13 @@ class hig(object):
     SPACE_LARGE = 18
 
 
-class hig_dlg_vbox(Gtk.VBox):
+class hig_dlg_vbox(Gtk.Box):
     """a GtkVBox containing as many rows as you wish to have categories
     inside the control area of the GtkDialog.
     """
 
     def __init__(self):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.set_spacing(hig.SPACE_MEDIUM)
         self.set_border_width(hig.SPACE_LARGE)
 
@@ -436,17 +440,18 @@ def hig_category_vbox(title, spacing=6):
             if you have to hide a category.
     box2    The box you should pack your stuff in.
     """
-    vbox = Gtk.VBox(False, 0)
+    vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
     vbox.set_spacing(hig.SPACE_SMALL)
     label = Gtk.Label(label='<span weight="bold">%s</span>' % title)
     label.set_use_markup(True)
-    label.set_alignment(0.0, 0.0)
+    label.set_halign(Gtk.Align.START)
+    label.set_valign(Gtk.Align.START)
     vbox.pack_start(label, False, False, 0)
-    hbox = Gtk.Box(False, 0)
+    hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
     vbox.pack_start(hbox, False, False, 0)
     fill = Gtk.Label(label="    ")
     hbox.pack_start(fill, False, False, 0)
-    category_content_vbox = Gtk.VBox(False, 0)
+    category_content_vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
     hbox.pack_start(category_content_vbox, True, True, 0)
     category_content_vbox.set_spacing(spacing)
     vbox.show_all()
@@ -462,7 +467,7 @@ def hig_label_widget(txt, widget, sizegroup, expand=False, fill=False):
     hbox = Gtk.Box()
     hbox.set_spacing(hig.SPACE_SMALL)
     label = Gtk.Label(label=txt)
-    label.set_alignment(0.0, 0.5)
+    label.set_xalign(0.0)
     if sizegroup:
         sizegroup.add_widget(label)
     hbox.pack_start(label, False, False, 0)
@@ -498,15 +503,15 @@ class SpinButtonRangeController(object):
             self.g_spin_high.set_value(self.m_highest_value)
 
 
-class AlignedHBox(Gtk.HBox):
+class AlignedHBox(Gtk.Box):
 
     def setup_pre(self):
-        self.g_prebox = Gtk.HBox(False, 0)
+        self.g_prebox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         self.g_prebox.set_no_show_all(True)
         self.pack_start(self.g_prebox, True, True, 0)
 
     def setup_post(self):
-        self.g_postbox = Gtk.HBox(False, 0)
+        self.g_postbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         self.g_postbox.set_no_show_all(True)
         self.pack_start(self.g_postbox, True, True, 0)
 
@@ -575,26 +580,29 @@ class HarmonicProgressionLabel(AlignedHBox):
         return "err", c, None
 
     def twoline(self, A, B):
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         t1 = Gtk.Label(label=A)
         t1.set_name("ProgressionLabelNumber")
         t1.show()
         vbox.pack_start(t1, True, True, 0)
-        t1.set_alignment(0, 0)
+        t1.set_xalign(0)
+        t1.set_yalign(0)
         t2 = Gtk.Label(label=B)
         t2.set_name("ProgressionLabelNumber")
         t2.show()
         vbox.pack_start(t2, True, True, 0)
-        t2.set_alignment(0, 0)
+        t2.set_xalign(0)
+        t2.set_yalign(0)
         self.pack_start(vbox, False, False, 0)
 
     def oneline(self, A):
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         t = Gtk.Label(label=A)
         t.set_name("ProgressionLabelNumber")
         t.show()
         vbox.pack_start(t, True, True, 0)
-        t.set_alignment(0, 0)
+        t.set_xalign(0)
+        t.set_yalign(0)
         self.pack_start(vbox, False, False, 0)
 
     def bigchar(self, A):
@@ -631,7 +639,8 @@ def dialog_ok(text, parent=None, secondary_text=None, msgtype=Gtk.MessageType.IN
 
 def dialog_delete(text, parent, secondary_text=None):
     m = Gtk.MessageDialog(parent, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION, Gtk.ButtonsType.NONE, text)
-    m.add_buttons(Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL, Gtk.STOCK_DELETE, Gtk.ResponseType.ACCEPT)
+    m.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                  _("_Delete"), Gtk.ResponseType.ACCEPT)
     if secondary_text:
         m.format_secondary_text(secondary_text)
     ret = m.run()
@@ -639,10 +648,10 @@ def dialog_delete(text, parent, secondary_text=None):
     return ret == Gtk.ResponseType.ACCEPT
 
 
-class NewLineBox(Gtk.VBox):
+class NewLineBox(Gtk.Box):
 
     def __init__(self):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         self.m_todo_widgets = []
 
     def add_widget(self, widget):
@@ -658,7 +667,7 @@ class NewLineBox(Gtk.VBox):
         self.m_todo_widgets.append('newline')
 
     def _newline_show_widgets(self):
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         hbox = bHBox(self, True)
         for n in self.m_todo_widgets:
             if n == 'newline':
@@ -672,7 +681,7 @@ class NewLineBox(Gtk.VBox):
         w = 8
         num_lines = len(self.m_todo_widgets) // w + 1
         w = len(self.m_todo_widgets) // num_lines + 1
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         c = 0
         for n in self.m_todo_widgets:
             sizegroup.add_widget(n)
@@ -688,7 +697,8 @@ class NewLineBox(Gtk.VBox):
         self.m_todo_widgets = []
 
     def get_max_child_height(self):
-        return max([c.size_request().height for c in self.m_todo_widgets])
+        return max([c.get_preferred_size()[1].height
+                    for c in self.m_todo_widgets])
 
 
 def create_png_image(fn):
@@ -712,6 +722,46 @@ def create_rhythm_image(rhythm):
     return im
 
 
+def get_monitor_geometry(window=None):
+    """Return monitor geometry without the deprecated Gdk.Screen API."""
+    display = Gdk.Display.get_default()
+    monitor = None
+    if window is not None and window.get_window() is not None:
+        monitor = display.get_monitor_at_window(window.get_window())
+    if monitor is None:
+        monitor = display.get_monitor(0)
+    if monitor is not None:
+        return monitor.get_geometry()
+    # No monitor is possible on unusual virtual displays during startup.
+    return Gdk.Rectangle(x=0, y=0, width=1024, height=768)
+
+
+class LegacyGrid(Gtk.Grid):
+    """Gtk.Grid accepting legacy left/right/top/bottom coordinates."""
+
+    def attach(self, child, left, right, top, bottom,
+               xoptions=Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL,
+               yoptions=Gtk.AttachOptions.EXPAND | Gtk.AttachOptions.FILL,
+               xpadding=0, ypadding=0):
+        child.set_hexpand(bool(xoptions & Gtk.AttachOptions.EXPAND))
+        child.set_vexpand(bool(yoptions & Gtk.AttachOptions.EXPAND))
+        child.set_halign(Gtk.Align.FILL if xoptions & Gtk.AttachOptions.FILL
+                         else Gtk.Align.START)
+        child.set_valign(Gtk.Align.FILL if yoptions & Gtk.AttachOptions.FILL
+                         else Gtk.Align.CENTER)
+        child.set_margin_start(xpadding)
+        child.set_margin_end(xpadding)
+        child.set_margin_top(ypadding)
+        child.set_margin_bottom(ypadding)
+        Gtk.Grid.attach(self, child, left, top, right - left, bottom - top)
+
+    def set_col_spacings(self, spacing):
+        self.set_column_spacing(spacing)
+
+    def set_row_spacings(self, spacing):
+        self.set_row_spacing(spacing)
+
+
 class EditorDialogBase(object):
     # Classes inheriting from this must define self.savedir
     instance_counter = 1
@@ -726,19 +776,50 @@ class EditorDialogBase(object):
         self.m_filename = filename
         self.m_savetime = time.time()
         self.connect('delete_event', self.on_delete_event)
-        self.g_ui_manager = Gtk.UIManager()
-        accelgroup = self.g_ui_manager.get_accel_group()
-        self.add_accel_group(accelgroup)
+        self._editor_accel_group = Gtk.AccelGroup()
+        self.add_accel_group(self._editor_accel_group)
+        self.g_toolbar_buttons = {}
 
-        self.g_actiongroup = Gtk.ActionGroup('')
-        self.g_actiongroup.add_actions([
-         ('Close', Gtk.STOCK_CLOSE, None, None, None, self.close_window),
-         ('Save', Gtk.STOCK_SAVE, None, None, None, self.on_save),
-         ('SaveAs', Gtk.STOCK_SAVE_AS, None, None, None, self.on_save_as),
-         ('New', Gtk.STOCK_NEW, None, None, None, self.new_file),
-         ('Open', Gtk.STOCK_OPEN, None, None, None, self.on_open),
-         ('Help', Gtk.STOCK_HELP, None, None, None, self.on_show_help),
-        ])
+    def create_editor_toolbar(self, actions):
+        common = {
+            'Close': (_('_Close'), 'window-close-symbolic',
+                      self.close_window, '<ctrl>W'),
+            'Save': (_('_Save'), 'document-save-symbolic',
+                     self.on_save, '<ctrl>S'),
+            'SaveAs': (_('Save _As…'), 'document-save-as-symbolic',
+                       self.on_save_as, '<shift><ctrl>S'),
+            'New': (_('_New'), 'document-new-symbolic',
+                    self.new_file, '<ctrl>N'),
+            'Open': (_('_Open'), 'document-open-symbolic',
+                     self.on_open, '<ctrl>O'),
+            'Help': (_('_Help'), 'help-browser-symbolic',
+                     self.on_show_help, 'F1'),
+        }
+        toolbar = Gtk.Toolbar()
+        # GTK 3 implements toolbar overflow with deprecated ImageMenuItems,
+        # which emits diagnostics on current releases. These editor toolbars
+        # are short enough to stay inline, so avoid that legacy proxy path.
+        toolbar.set_show_arrow(False)
+        toolbar.set_style(Gtk.ToolbarStyle.BOTH)
+        for action in actions:
+            if isinstance(action, str):
+                name = action
+                label, icon_name, callback, accelerator = common[name]
+            else:
+                name, label, icon_name, callback, accelerator = action
+            image = Gtk.Image.new_from_icon_name(
+                icon_name, Gtk.IconSize.LARGE_TOOLBAR)
+            button = Gtk.ToolButton.new(image, label.replace('_', ''))
+            button.set_tooltip_text(label.replace('_', ''))
+            button.connect('clicked', callback)
+            if accelerator:
+                key, modifiers = Gtk.accelerator_parse(accelerator)
+                button.add_accelerator(
+                    'clicked', self._editor_accel_group, key, modifiers,
+                    Gtk.AccelFlags.VISIBLE)
+            toolbar.insert(button, -1)
+            self.g_toolbar_buttons[name] = button
+        return toolbar
 
     def add_to_instance_dict(self):
         if self.m_filename:
@@ -810,8 +891,8 @@ class EditorDialogBase(object):
             msg = _("If you don't save, changes from the past %i minutes will be permanently lost.") % int((time.time() - self.m_savetime) / 60.0)
         m.format_secondary_text(msg)
         m.add_button(_("_Close without Saving"), Gtk.ResponseType.CLOSE)
-        m.add_button("gtk-cancel", Gtk.ResponseType.CANCEL)
-        m.add_button("gtk-save", Gtk.ResponseType.OK)
+        m.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+        m.add_button(_("_Save"), Gtk.ResponseType.OK)
         m.set_default_response(Gtk.ResponseType.OK)
         r = m.run()
         m.destroy()
@@ -846,10 +927,10 @@ class EditorDialogBase(object):
         and display a dialog. Then it will destroy any newly created
         dialog.
         """
-        dialog = Gtk.FileChooserDialog(None, self,
-            Gtk.FileChooserAction.OPEN,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(
+            transient_for=self, action=Gtk.FileChooserAction.OPEN)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                           _("_OK"), Gtk.ResponseType.OK)
         dialog.set_current_folder(self.savedir)
         ret = dialog.run()
         if ret == Gtk.ResponseType.OK:
@@ -875,10 +956,11 @@ class EditorDialogBase(object):
         dialog.destroy()
 
     def get_save_as_dialog(self):
-        dialog = Gtk.FileChooserDialog(_("Save As..."), self,
-            Gtk.FileChooserAction.SAVE,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(
+            title=_("Save As..."), transient_for=self,
+            action=Gtk.FileChooserAction.SAVE)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                           _("_OK"), Gtk.ResponseType.OK)
         dialog.set_default_response(Gtk.ResponseType.OK)
         return dialog
 
@@ -947,10 +1029,11 @@ class EditorDialogBase(object):
 
     def select_empty_directory(self, title):
         msg = _("Select an empty directory, since we want to fill it with files.")
-        dialog = Gtk.FileChooserDialog(title,
-            self, Gtk.FileChooserAction.SELECT_FOLDER,
-            (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-             Gtk.STOCK_OK, Gtk.ResponseType.OK))
+        dialog = Gtk.FileChooserDialog(
+            title=title, transient_for=self,
+            action=Gtk.FileChooserAction.SELECT_FOLDER)
+        dialog.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                           _("_OK"), Gtk.ResponseType.OK)
         label = Gtk.Label(label=msg)
         label.show()
         dialog.vbox.pack_start(label, False, False, padding=0)
@@ -1028,17 +1111,17 @@ class LogWindow(Gtk.Window):
         self.set_transient_for(parent)
         self.set_destroy_with_parent(True)
         self.set_modal(True)
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         vbox.set_spacing(4)
         self.add(vbox)
         self.set_default_size(630, 400)
         self.g_logwidget = LogWidget()
         vbox.pack_start(self.g_logwidget, True, True, 0)
-        vbox.pack_start(Gtk.HSeparator(), False, False, 0)
-        bbox = Gtk.HButtonBox()
+        vbox.pack_start(Gtk.Separator(orientation=Gtk.Orientation.HORIZONTAL), False, False, 0)
+        bbox = Gtk.ButtonBox(orientation=Gtk.Orientation.HORIZONTAL)
         bbox.set_layout(Gtk.ButtonBoxStyle.END)
         vbox.pack_start(bbox, False, False, padding=0)
-        self.g_close_button = Gtk.Button(stock="gtk-close")
+        self.g_close_button = Gtk.Button.new_with_mnemonic(_("_Close"))
         self.g_close_button.set_sensitive(False)
         self.g_close_button.connect('clicked', lambda w: self.destroy())
         bbox.pack_start(self.g_close_button, True, True, 0)
@@ -1057,9 +1140,10 @@ class ClickableLabel(Gtk.LinkButton):
         We are abusing the Link button by not giving it a real uri.
         So let ut not even pretend to follow its api.
         """
-        Gtk.LinkButton.__init__(self, label, label)
+        Gtk.LinkButton.__init__(self, uri=label, label=label)
         self.get_children()[0].set_ellipsize(Pango.EllipsizeMode.END)
-        self.get_children()[0].set_alignment(0.0, 0.5)
+        self.get_children()[0].set_halign(Gtk.Align.START)
+        self.get_children()[0].set_valign(Gtk.Align.CENTER)
 
         def f(*w): return True
         self.connect('activate-link', f)
@@ -1067,34 +1151,39 @@ class ClickableLabel(Gtk.LinkButton):
     def add_heading(self, text):
         def set_alignment(x, y):
             for c in self.get_children()[0].get_children():
-                super(Gtk.Label, c).set_alignment(x, y)
-        vbox = Gtk.VBox(False, 0)
+                if isinstance(c, Gtk.Label):
+                    c.set_xalign(x)
+                    c.set_yalign(y)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         vbox.set_alignment = set_alignment
         b = Gtk.Label()
         b.set_markup("%s" % text)
-        b.set_alignment(0.0, 0.5)
+        b.set_xalign(0.0)
         vbox.pack_start(b, False, False, 0)
-        self.get_children()[0].reparent(vbox)
+        content = self.get_children()[0]
+        self.remove(content)
+        vbox.pack_start(content, True, True, 0)
         self.add(vbox)
 
     def make_warning(self):
-        im = Gtk.Image()
-        im.set_from_stock(Gtk.STOCK_DIALOG_WARNING, Gtk.IconSize.MENU)
+        im = Gtk.Image.new_from_icon_name("dialog-warning-symbolic",
+                                          Gtk.IconSize.MENU)
         self.set_image(im)
-        self.set_alignment(0.0, 0.5)
+        self.set_halign(Gtk.Align.START)
+        self.set_valign(Gtk.Align.CENTER)
 
 
 class ExceptionDialog(Gtk.Dialog):
 
     def __init__(self, exception):
-        Gtk.Dialog.__init__(self, sys.exc_info()[0].__name__,
-                            solfege.win)
+        Gtk.Dialog.__init__(self, title=sys.exc_info()[0].__name__,
+                            transient_for=solfege.win)
         self.set_resizable(True)
         self.set_border_width(6)
         self.vbox.set_spacing(0)
 
         # HBox with two children: the warning image, and a VBox with content
-        hbox = Gtk.HBox(False, 0)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=False, spacing=0)
         hbox.set_spacing(12)
         hbox.set_border_width(6)
         self.vbox.pack_start(hbox, False, False, 0)
@@ -1104,13 +1193,13 @@ class ExceptionDialog(Gtk.Dialog):
         hbox.pack_start(img, False, False, padding=0)
 
         # A Vbox with labels and code listings
-        vbox = Gtk.VBox(False, 0)
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL, homogeneous=False, spacing=0)
         hbox.pack_start(vbox, False, False, padding=0)
         self.msg_vbox = vbox
         self.g_primary = Gtk.Label()
         if sys.exc_info()[0].__name__ == 'AttributeError':
             self.g_primary.set_name("DEBUGWARNING")
-        self.g_primary.set_alignment(0.0, 0.5)
+        self.g_primary.set_xalign(0.0)
         self.g_primary.set_line_wrap(True)
         self.m_primary_bold = False
         self.msg_vbox.pack_start(self.g_primary, True, True, 0)
@@ -1130,15 +1219,15 @@ class ExceptionDialog(Gtk.Dialog):
         self.g_primary.set_width_chars(60)
         expander = Gtk.Expander(label="Traceback")
         self.vbox.pack_start(expander, True, True, 0)
-        l = Gtk.Label("".join(traceback.format_exception(
+        l = Gtk.Label(label="".join(traceback.format_exception(
             sys.exc_info()[0], sys.exc_info()[1], sys.exc_info()[2])))
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         sc = Gtk.ScrolledWindow()
         sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.AUTOMATIC)
         sc.set_size_request(-1, 100)
         expander.add(sc)
-        sc.add_with_viewport(l)
-        w = self.add_button(Gtk.STOCK_CLOSE, Gtk.ResponseType.CLOSE)
+        sc.add(l)
+        w = self.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.set_default_response(Gtk.ResponseType.CLOSE)
         self.set_focus(w)
         self.show_all()
@@ -1154,7 +1243,7 @@ class ExceptionDialog(Gtk.Dialog):
         # We add a empty string with a newline to get the spacing
         l = Gtk.Label(label=text)
         l.set_line_wrap(True)
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.show()
         self.msg_vbox.pack_start(l, True, True, 0)
 
@@ -1165,13 +1254,13 @@ class ExceptionDialog(Gtk.Dialog):
         l.set_markup('<span font_family="monospace">%s</span>' % escape(text))
         l.set_name("codelisting")
         l.set_line_wrap(False)
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.show()
-        sc.add_with_viewport(l)
+        sc.add(l)
         self.msg_vbox.pack_start(sc, True, True, 0)
         sc.show_all()
         sc.set_policy(Gtk.PolicyType.AUTOMATIC, Gtk.PolicyType.NEVER)
-        h = l.get_ancestor(Gtk.Viewport).size_request().height
+        h = l.get_preferred_size()[1].height
         max_lines = 5
         lines = text.count("\n") + 1
         if lines <= max_lines:

@@ -1,6 +1,6 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
-import urllib
+from urllib.request import urlretrieve
 import os
 import zipfile
 import glob
@@ -45,15 +45,15 @@ def get_files(key, savedir):
         url = urls[app][key]
         fn = os.path.join(savedir, url.split("?")[0].split("/")[-1])
         if not os.path.exists(fn):
-            print "Downloading:", fn
+            print("Downloading:", fn)
             sys.stdout.flush()
-            urllib.urlretrieve(url, fn)
+            urlretrieve(url, fn)
         else:
-            print "File already here:", fn
+            print("File already here:", fn)
 
 
 def unpack_file(fn):
-        print "unzipping:", fn
+        print("unzipping:", fn)
         sys.stdout.flush()
         z = zipfile.ZipFile(fn)
         for n in z.namelist():
@@ -79,15 +79,15 @@ def unpack():
 if sys.argv[1] == 'bin':
     get_files('bin', cachedir)
 elif sys.argv[1] == 'src':
-    get_files('src', scdir)
+    get_files('src', srcdir)
 elif sys.argv[1] == 'unpack':
     unpack()
 elif sys.argv[1] == 'get-bundle':
     if not os.path.exists(gtk_bundle_fn):
-        print "Downloading:", gtk_bundle_fn
+        print("Downloading:", gtk_bundle_fn)
         sys.stdout.flush()
-        urllib.urlretrieve(gtk_bundle_url, gtk_bundle_fn)
+        urlretrieve(gtk_bundle_url, gtk_bundle_fn)
     else:
-        print "File already here:", gtk_bundle_fn
+        print("File already here:", gtk_bundle_fn)
 elif sys.argv[1] == 'unpack-bundle':
     unpack_file(gtk_bundle_fn)

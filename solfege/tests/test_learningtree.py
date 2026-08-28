@@ -95,4 +95,4 @@ class TestLearningTree(unittest.TestCase):
                 ['heading2'])
 
 
-suite = unittest.makeSuite(TestLearningTree)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestLearningTree)

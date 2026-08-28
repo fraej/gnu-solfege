@@ -303,13 +303,13 @@ class TestLexer(unittest.TestCase):
         lex.set_first_pitch(fis)
         self.assertEqual(lex.m_string, "fis d ERR e f")
         #
-        lex = mpd.lexer.Lexer("\clef bass c d ERR e f")
+        lex = mpd.lexer.Lexer("\\clef bass c d ERR e f")
         lex.set_first_pitch(fis)
-        self.assertEqual(lex.m_string, "\clef bass fis d ERR e f")
+        self.assertEqual(lex.m_string, "\\clef bass fis d ERR e f")
         #
-        lex = mpd.lexer.Lexer("\clef bass c d ERR e f")
+        lex = mpd.lexer.Lexer("\\clef bass c d ERR e f")
         lex.set_first_pitch(fis)
-        self.assertEqual(lex.m_string, "\clef bass fis d ERR e f")
+        self.assertEqual(lex.m_string, "\\clef bass fis d ERR e f")
 
     def test_m_notelen(self):
         lexer = mpd.lexer.Lexer("c8 d s16 r32")
@@ -374,8 +374,8 @@ class TestScore(unittest.TestCase):
             [True, Rat(1, 8)],
         ])
 
-suite = unittest.makeSuite(TestClef)
-suite.addTest(unittest.makeSuite(TestMpdParser))
-suite.addTest(unittest.makeSuite(TestFunctions))
-suite.addTest(unittest.makeSuite(TestLexer))
-suite.addTest(unittest.makeSuite(TestScore))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestClef)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMpdParser))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestFunctions))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestLexer))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestScore))

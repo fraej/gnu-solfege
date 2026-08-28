@@ -18,6 +18,7 @@
 
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gtk
 from gi.repository import Gdk
 
@@ -63,7 +64,7 @@ class RhythmViewer(Gtk.Frame):
         Gtk.Frame.__init__(self)
         self.set_shadow_type(Gtk.ShadowType.IN)
         self.g_parent = parent
-        self.g_box = Gtk.HBox()
+        self.g_box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_box.show()
         self.g_box.set_spacing(gu.PAD_SMALL)
         self.g_box.set_border_width(gu.PAD)
@@ -87,7 +88,7 @@ class RhythmViewer(Gtk.Frame):
         create those |__| that represents one beat
         """
         if self.__timeout:
-            GObject.source_remove(self.__timeout)
+            GLib.source_remove(self.__timeout)
         self.clear()
         for x in range(self.m_num_notes):
             self.g_box.pack_start(gu.create_png_image('holder'), False, False, 0)
@@ -114,7 +115,7 @@ class RhythmViewer(Gtk.Frame):
         assert len(self.m_data) <= self.m_num_notes
         if len(self.g_box.get_children()) >= self.m_num_notes:
             self.g_box.get_children()[self.m_num_notes - 1].destroy()
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.show()
 #        im = gu.create_rhythm_image(const.RHYTHMS[i])
         im = self.g_parent.solbutton(i, False)
@@ -184,13 +185,15 @@ class RhythmViewer(Gtk.Frame):
         self.clear()
         l = Gtk.Label(label=s)
         l.set_name("Feedback")
-        l.set_alignment(0.0, 0.5)
+        l.set_xalign(0.0)
         l.show()
         self.g_box.pack_start(l, True, True, 0)
+        unused, label_size = l.get_preferred_size()
+        unused, box_size = self.g_box.get_preferred_size()
         self.g_box.set_size_request(
-            max(l.size_request().width + gu.PAD * 2, self.g_box.size_request().width),
-            max(l.size_request().height + gu.PAD * 2, self.g_box.size_request().height))
-        self.__timeout = GObject.timeout_add(2000, self.unflash)
+            max(label_size.width + gu.PAD * 2, box_size.width),
+            max(label_size.height + gu.PAD * 2, box_size.height))
+        self.__timeout = GLib.timeout_add(2000, self.unflash)
 
     def unflash(self, *v):
         self.__timeout = None
@@ -203,17 +206,17 @@ class Gui(abstract.Gui, abstract_solmisation_addon.SolmisationAddOnGuiClass):
     def __init__(self, teacher):
         abstract.Gui.__init__(self, teacher)
         self.m_key_bindings = {'backspace_ak': self.on_backspace}
-        self.g_answer_box = Gtk.VBox()
+        self.g_answer_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.answer_buttons = []
         self.m_answer_buttons = {}
 
         #-------
         hbox = gu.bHBox(self.practise_box)
-        b = Gtk.Button(_("Play"))
+        b = Gtk.Button(label=_("Play"))
         b.show()
         b.connect('clicked', self.play_users_answer)
         hbox.pack_start(b, False, True, 0)
-        self.practise_box.pack_start(Gtk.HBox(), False, False,
+        self.practise_box.pack_start(Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL), False, False,
                                      padding=gu.PAD_SMALL)
         self.g_rhythm_viewer = RhythmViewer(self)
         self.g_rhythm_viewer.create_holders()
@@ -237,10 +240,10 @@ class Gui(abstract.Gui, abstract_solmisation_addon.SolmisationAddOnGuiClass):
         #--------
         self.add_select_num_notes_gui(row=1)
         #-----
-        self.g_config_grid.attach(Gtk.Label(_("Beats per minute:")),
+        self.g_config_grid.attach(Gtk.Label(label=_("Beats per minute:")),
             0, 2, 1, 1)
         spin = gu.nSpinButton(self.m_exname, 'bpm',
-                 Gtk.Adjustment(60, 20, 240, 1, 10))
+                 Gtk.Adjustment(value=60, lower=20, upper=240, step_increment=1, page_increment=10))
         self.g_config_grid.attach(spin, 1, 2, 1, 1)
         self.g_config_grid.attach(
            gu.nCheckButton(self.m_exname,
@@ -258,7 +261,7 @@ class Gui(abstract.Gui, abstract_solmisation_addon.SolmisationAddOnGuiClass):
         if i > len(solmisation_syllables) or i < 0:
             btn = Gtk.Button()
         else:
-            btn = Gtk.Button(solmisation_syllables[i])
+            btn = Gtk.Button(label=solmisation_syllables[i])
         btn.show()
         if connect:
             btn.connect('clicked', self.guess_element, i)
@@ -345,13 +348,13 @@ class Gui(abstract.Gui, abstract_solmisation_addon.SolmisationAddOnGuiClass):
         self.answer_buttons = []
         self.g_first_rhythm_button = None
 
-        gs = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        gs = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         for i, v in enumerate((
                     [1, 4, -1, 8, 11, -1, 15, 18, 21, -1, 25, 28, -1, 32],
                     [0, 3, 6, 7, 10, 13, 14, 17, 20, 23, 24, 27, 30, 31, 34],
                     [2, 5, -1, 9, 12, -1, 16, 19, 22, -1, 26, 29, -1, 33])):
-            hbox = Gtk.HBox(True, 0)
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=0)
             for k in v:
                 b = self.solbutton(k, True)
                 gs.add_widget(b)
@@ -365,10 +368,10 @@ class Gui(abstract.Gui, abstract_solmisation_addon.SolmisationAddOnGuiClass):
                 self.answer_buttons.append(b)
                 if k != -1:
                     self.m_answer_buttons[k] = b
-            spacing = Gtk.Alignment()
+            spacing = Gtk.Box()
             if i in (0, 2):
-                spacing.set_property('left-padding', 16)
-                spacing.set_property('right-padding', 16)
+                spacing.set_margin_start(16)
+                spacing.set_margin_end(16)
             spacing.add(hbox)
             self.g_answer_box.pack_start(spacing, True, True, 0)
             spacing.show_all()

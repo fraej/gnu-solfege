@@ -17,4 +17,4 @@ class TestMpdUtils(unittest.TestCase):
         self.assertEqual((13, 15), find_possible_first_note(r"\times 3/4 { d'4 e }"))
         self.assertEqual((1, 2), find_possible_first_note(r"[c8 d]"))
 
-suite = unittest.makeSuite(TestMpdUtils)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestMpdUtils)

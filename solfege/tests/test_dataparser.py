@@ -393,7 +393,7 @@ class TestEncodingSniffer(TmpFileBase):
         self.assertIsNone(read_encoding_marker_from_file(
             os.path.join(self.tmpdir, "empty-file")))
 
-suite = unittest.makeSuite(TestLexer)
-suite.addTest(unittest.makeSuite(TestDataParser))
-suite.addTest(unittest.makeSuite(TestIstr))
-suite.addTest(unittest.makeSuite(TestEncodingSniffer))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestLexer)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestDataParser))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestIstr))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestEncodingSniffer))

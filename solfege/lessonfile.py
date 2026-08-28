@@ -26,6 +26,7 @@ import sys
 import textwrap
 
 from gi.repository import GObject
+from gi.repository import GLib
 
 from solfege import cfg
 from solfege import dataparser
@@ -2037,7 +2038,7 @@ class InfoCache(object):
                     print("all files parsed:", time.time() - start_time)
                     pt.Identifier.check_ns = True
                     return False
-            GObject.idle_add(on_idle_parse)
+            GLib.idle_add(on_idle_parse)
         else:
             list(self.iter_parse_all_files())
 

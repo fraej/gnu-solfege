@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 import sys
 sys.path.insert(0, ".")
 from solfege import i18n
@@ -14,7 +14,7 @@ soundcard.initialise_external_midiplayer()
 #soundcard.initialise_devicefile("/dev/sequencer2", 2)
 
 
-print """
+print("""
 You should here three major triads:
 
     G       G       G
@@ -23,7 +23,7 @@ C       C       C_C_C   C
 (piano) (flute) (strings ens)
 
 Press enter when the sounds are finished.
-"""
+""")
 
 t = Track()
 t.set_bpm(120, 4)
@@ -48,6 +48,6 @@ t.note(2, 60, 100)
 soundcard.synth.play_track(t)
 
 import sys
-print "press <enter>"
+print("press <enter>")
 sys.stdin.readline()
 # soundcard.synth.close()

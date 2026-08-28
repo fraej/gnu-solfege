@@ -8,4 +8,4 @@ import unittest
 
 class TestSourceCode(unittest.TestCase):
     pass
-suite = unittest.makeSuite(TestSourceCode)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestSourceCode)

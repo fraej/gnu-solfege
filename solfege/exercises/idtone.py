@@ -19,6 +19,7 @@ import random
 import os
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gtk
 
 from solfege import abstract
@@ -57,7 +58,7 @@ class Teacher(abstract.Teacher):
         ERR_CONFIG: fail, all notes have zero weight or no octaves selected
         """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if self.get_bool('config/picky_on_new_question') \
@@ -146,7 +147,7 @@ class Gui(abstract.Gui):
         ###############
         # config_grid #
         ###############
-        table = Gtk.Table()
+        table = Gtk.Grid()
         table.set_border_width(gu.PAD_SMALL)
         self.g_tones_frame = frame = Gtk.Frame(label=_("Weight"))
         self.g_config_grid.attach(frame, 0, 0, 3, 1)
@@ -155,24 +156,27 @@ class Gui(abstract.Gui):
                      (9, 'gis'), (11, 'ais')]:
             label = Gtk.Label(label=mpd.MusicalPitch.new_from_notename(n).get_user_notename())
             label.set_name("Heading2")
-            label.set_alignment(0.2, 1.0)
-            table.attach(label, x, x + 2, 0, 1, xoptions=Gtk.AttachOptions.FILL)
+            label.set_halign(Gtk.Align.START)
+            label.set_valign(Gtk.Align.END)
+            table.attach(label, x, 0, 2, 1)
             b = gu.nSpinButton(self.m_exname, n + "_weight",
-                      Gtk.Adjustment(1, 0, 1000, 1, 10), digits=0)
-            table.attach(b, x, x + 2, 1, 2, xoptions=Gtk.AttachOptions.FILL)
+                      Gtk.Adjustment(value=1, lower=0, upper=1000, step_increment=1, page_increment=10), digits=0)
+            table.attach(b, x, 1, 2, 1)
         for x, n in [(0, 'c'), (2, 'd'), (4, 'e'), (6, 'f'),
                       (8, 'g'), (10, 'a'), (12, 'b')]:
             label = Gtk.Label(label=mpd.MusicalPitch.new_from_notename(n).get_user_notename())
             label.set_name("Heading2")
-            label.set_alignment(0.35, 1.0)
-            table.attach(label, x, x + 2, 2, 3, xoptions=Gtk.AttachOptions.FILL)
+            label.set_halign(Gtk.Align.START)
+            label.set_valign(Gtk.Align.END)
+            table.attach(label, x, 2, 2, 1)
             b = gu.nSpinButton(self.m_exname, n + "_weight",
-                   Gtk.Adjustment(1, 0, 1000, 1, 10), digits=0)
-            table.attach(b, x, x + 2, 3, 4, xoptions=Gtk.AttachOptions.FILL)
+                   Gtk.Adjustment(value=1, lower=0, upper=1000, step_increment=1, page_increment=10), digits=0)
+            table.attach(b, x, 3, 2, 1)
 
-        self.g_octaves_select = hbox = Gtk.HBox()
+        self.g_octaves_select = hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.g_config_grid.attach(hbox, 0, 1, 3, 1)
-        hbox.pack_start(Gtk.Label(_("Octave:")), False, False, padding=4)
+        hbox.pack_start(Gtk.Label(label=_("Octave:")),
+                        False, False, padding=4)
         for oct in self.m_t.OCTAVES:
             b = gu.nCheckButton(self.m_exname, "octave" + str(oct), str(oct),
                                 default_value=1)

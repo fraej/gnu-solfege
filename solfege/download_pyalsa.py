@@ -43,8 +43,8 @@ def download():
 
     m = Gtk.MessageDialog(solfege.win, Gtk.DialogFlags.MODAL, Gtk.MessageType.QUESTION,
             message_format="Download python modules?")
-    m.add_button("Cancel", Gtk.ResponseType.CANCEL)
-    m.add_button(Gtk.STOCK_EXECUTE, Gtk.ResponseType.ACCEPT)
+    m.add_button(_("_Cancel"), Gtk.ResponseType.CANCEL)
+    m.add_button(_("_Execute"), Gtk.ResponseType.ACCEPT)
     m.format_secondary_markup("""This will download «%(url)s» and build it in a subdirectory of %(pdir)s.
 
 This is what the program will do for you:

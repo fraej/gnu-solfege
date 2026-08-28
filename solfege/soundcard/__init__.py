@@ -50,14 +50,52 @@ if sys.platform == 'win32':
 _mediaplayer = None
 
 
+_TIMIDITY_SOUNDFONT_CONFIGS = (
+    ("/etc/timidity/fluidr3_gm.cfg",
+     "/usr/share/sounds/sf2/FluidR3_GM.sf2"),
+    ("/etc/timidity/timgm6mb.cfg",
+     "/usr/share/sounds/sf2/TimGM6mb.sf2"),
+)
+
+
+def _add_timidity_soundfont_config(args):
+    """Select an installed TiMidity GM soundfont when none was specified."""
+    if os.path.basename(args[0]) != "timidity":
+        return args
+    if any(arg == "-c" or arg.startswith("--config-file")
+           for arg in args[1:]):
+        return args
+
+    available = [(config_filename, soundfont_filename)
+                 for config_filename, soundfont_filename
+                 in _TIMIDITY_SOUNDFONT_CONFIGS
+                 if os.path.isfile(config_filename)
+                 and os.path.isfile(soundfont_filename)]
+    if not available:
+        return args
+
+    default_soundfont = os.path.realpath(
+        "/usr/share/sounds/sf2/default-GM.sf2")
+    for config_filename, soundfont_filename in available:
+        if os.path.realpath(soundfont_filename) == default_soundfont:
+            break
+    else:
+        config_filename = available[0][0]
+
+    return args[:1] + ["-c", config_filename] + args[1:]
+
+
 def _kill_mediaplayer():
     """
     We need to do this atexit to avoid some text about an ignored
     exception in Popen.
     """
-    if _mediaplayer:
-        _mediaplayer.kill()
+    global _mediaplayer
+    if _mediaplayer is not None:
+        if _mediaplayer.poll() is None:
+            _mediaplayer.kill()
         _mediaplayer.wait()
+        _mediaplayer = None
 atexit.register(_kill_mediaplayer)
 
 
@@ -72,6 +110,8 @@ def play_mediafile(typeid, filename):
         if cfg.get_string("sound/%s_player_options" % typeid):
             args.extend(
              cfg.get_string("sound/%s_player_options" % typeid).split(" "))
+        if typeid == "midi":
+            args = _add_timidity_soundfont_config(args)
         found = False
         for i, s in enumerate(args):
             if '%s' in s:
@@ -83,9 +123,9 @@ def play_mediafile(typeid, filename):
         args = [x for x in args if x != '%s']
         if not found:
             args.append(os.path.abspath(filename))
-        if _mediaplayer and _mediaplayer.poll() is None:
-            _mediaplayer.kill()
-            _mediaplayer = None
+        # Always reap the previous child. Merely killing it leaves a live
+        # Popen object behind and Python 3.14 reports that as a resource leak.
+        _kill_mediaplayer()
         try:
             if sys.platform == 'win32':
                 info = subprocess.STARTUPINFO()

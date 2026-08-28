@@ -153,9 +153,9 @@ class TestMidiEventStream(TmpFile):
     def test_track2(self):
         self.do_file("""
         header { random_transpose = no }
-        question { music = music("\staff{ c'' }"
+        question { music = music("\\staff{ c'' }"
                                 + "\\addvoice{ e' }"
-                                + "\staff{ c }")
+                                + "\\staff{ c }")
         }
         """)
         self.p._idx = 0
@@ -164,9 +164,9 @@ class TestMidiEventStream(TmpFile):
     def test_track3(self):
         self.do_file("""
         header { random_transpose = no }
-        question { music = music("\staff{ c''1 c''1 }"
+        question { music = music("\\staff{ c''1 c''1 }"
                                 + "\\addvoice{ r4 e'2. e'1 }"
-                                + "\staff{ r4 r g2 g1 }"
+                                + "\\staff{ r4 r g2 g1 }"
                                 + "\\addvoice{ r4 r r c c1}")
         }
         """)
@@ -196,8 +196,8 @@ class TestMidiEventStream(TmpFile):
     def test_track3_1(self):
         self.do_file("""
         header { random_transpose = no }
-        question { music = music("\staff{ c''1 c''1 }"
-                                + "\staff{ r4 r g2 g1 }")
+        question { music = music("\\staff{ c''1 c''1 }"
+                                + "\\staff{ r4 r g2 g1 }")
         }
         """)
         self.p._idx = 0
@@ -463,6 +463,6 @@ class TestChannelDevice(unittest.TestCase):
         self.assertEqual(0, ch_dev.require_channel(63, 0, 100))
         ch_dev.start_note(0, 63)
 
-suite = unittest.makeSuite(TestTrack)
-suite.addTest(unittest.makeSuite(TestMidiEventStream))
-suite.addTest(unittest.makeSuite(TestChannelDevice))
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestTrack)
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestMidiEventStream))
+suite.addTest(unittest.defaultTestLoader.loadTestsFromTestCase(TestChannelDevice))

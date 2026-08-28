@@ -16,6 +16,7 @@
 
 
 from gi.repository import GObject
+from gi.repository import GLib
 
 from solfege import abstract
 from solfege import gu
@@ -62,7 +63,7 @@ class Teacher(abstract.Teacher):
         UI will never call this function unless we have a usable lessonfile.
         """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if solfege.app.m_test_mode:

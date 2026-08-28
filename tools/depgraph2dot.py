@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 # Copyright 2004 Toby Dickenson
 #
 # Permission is hereby granted, free of charge, to any person obtaining
@@ -21,7 +21,14 @@
 # SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
-import sys, getopt, colorsys, imp, md5
+import colorsys
+import getopt
+import hashlib
+import sys
+
+
+# Value historically returned by imp.find_module() for package directories.
+PKG_DIRECTORY = 5
 
 
 class pydepgraphdot:
@@ -42,8 +49,8 @@ class pydepgraphdot:
         p, t = self.get_data()
 
         # normalise our input data
-        for k, d in p.items():
-            for v in d.keys():
+        for k, d in list(p.items()):
+            for v in d:
                 if v not in p:
                     p[v] = {}
 
@@ -54,12 +61,12 @@ class pydepgraphdot:
         #f.write('ordering = out;\n')
         f.write('ranksep=1.0;\n')
         f.write('node [style=filled,fontname=Helvetica,fontsize=10];\n')
-        allkd = p.items()
+        allkd = list(p.items())
         allkd.sort()
         for k, d in allkd:
             tk = t.get(k)
             if self.use(k, tk):
-                allv = d.keys()
+                allv = list(d)
                 allv.sort()
                 for v in allv:
                     tv = t.get(v)
@@ -129,7 +136,7 @@ class pydepgraphdot:
             # references *to* __main__ are never interesting. omitting them means
             # that main floats to the top of the page
             return 1
-        if type == imp.PKG_DIRECTORY:
+        if type == PKG_DIRECTORY:
             # dont draw references to packages.
             return 1
         return 0
@@ -168,7 +175,7 @@ class pydepgraphdot:
         return self.color_from_name(t)
 
     def normalise_module_name_for_hash_coloring(self, s, type):
-        if type == imp.PKG_DIRECTORY:
+        if type == PKG_DIRECTORY:
             return s
         else:
             i = s.rfind('.')
@@ -178,12 +185,15 @@ class pydepgraphdot:
                 return s[:i]
 
     def color_from_name(self, name):
-        n = md5.md5(name).digest()
-        hf = float(ord(n[0]) + ord(n[1]) * 0xff) / 0xffff
-        sf = float(ord(n[2])) / 0xff
-        vf = float(ord(n[3])) / 0xff
+        n = hashlib.md5(name.encode('utf-8')).digest()
+        hf = float(n[0] + n[1] * 0xff) / 0xffff
+        sf = float(n[2]) / 0xff
+        vf = float(n[3]) / 0xff
         r, g, b = colorsys.hsv_to_rgb(hf, 0.3 + 0.6 * sf, 0.8 + 0.2 * vf)
-        return '#%02x%02x%02x' % (r * 256, g * 256, b * 256)
+        return '#%02x%02x%02x' % (
+            min(255, int(r * 256)),
+            min(255, int(g * 256)),
+            min(255, int(b * 256)))
 
 
 class StdoutWrapper(object):
@@ -193,7 +203,7 @@ class StdoutWrapper(object):
 
     def write(self, line):
         if line not in self.done:
-            print >> sys.stdout, line
+            sys.stdout.write(line)
             self.done.add(line)
 
 

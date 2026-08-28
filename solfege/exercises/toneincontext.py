@@ -369,11 +369,11 @@ def fill_grid(button_class, grid, labels):
     grid.set_column_homogeneous(True)
     buttons = {}
     for p, x in ((0, 1), (1, 3), (3, 6), (4, 8), (5, 10)):
-        b = button_class(labels[x])
+        b = button_class(label=labels[x])
         buttons[x] = b
         grid.attach(b, p * 2 + 1, 0, 2, 1)
     for p, x in enumerate((0, 2, 4, 5, 7, 9, 11, 12)):
-        b = button_class(labels[x])
+        b = button_class(label=labels[x])
         buttons[x] = b
         grid.attach(b, p * 2, 1, 2, 1)
     return buttons
@@ -416,47 +416,47 @@ class Gui(abstract.Gui):
         self.g_wgrid.set_column_spacing(gu.hig.SPACE_SMALL)
 
         self.g_wgrid.attach(
-            Gtk.Label(_("You answered:"), halign=Gtk.Align.END),
+            Gtk.Label(label=_("You answered:"), halign=Gtk.Align.END),
             0, 1, 1, 1)
         self.g_wrong = Gtk.Label()
         self.g_wgrid.attach(self.g_wrong, 1, 1, 1, 1)
-        b = Gtk.Button(_("Play cadence and tone"))
+        b = Gtk.Button(label=_("Play cadence and tone"))
         b.connect('clicked', lambda w: self.m_t.play_wrong_guess())
         self.g_wgrid.attach(b, 2, 1, 1, 1)
-        b = Gtk.Button(_("Play tone"))
+        b = Gtk.Button(label=_("Play tone"))
         b.connect('clicked', lambda w: soundcard.synth.play_track(
             self.m_t.get_track_of_tone(self.m_t.m_guessed)))
         self.g_wgrid.attach(b, 3, 1, 1, 1)
-        b = Gtk.Button(_("Play tone with solution"))
+        b = Gtk.Button(label=_("Play tone with solution"))
         b.connect('clicked', lambda w: soundcard.synth.play_track(
             self.m_t.get_track_of_solution(self.m_t.m_guessed)))
         self.g_wgrid.attach(b, 4, 1, 1, 1)
 
         self.g_wgrid.attach(
-            Gtk.Label(_("Correct answer:"), halign=Gtk.Align.END),
+            Gtk.Label(label=_("Correct answer:"), halign=Gtk.Align.END),
             0, 2, 1, 1)
         self.g_correct = Gtk.Label()
         self.g_wgrid.attach(self.g_correct, 1, 2, 1, 1)
-        b = Gtk.Button(_("Play cadence and tone"))
+        b = Gtk.Button(label=_("Play cadence and tone"))
         b.connect('clicked', lambda w: self.m_t.play_question())
         self.g_wgrid.attach(b, 2, 2, 1, 1)
-        b = Gtk.Button(_("Play tone"))
+        b = Gtk.Button(label=_("Play tone"))
         b.connect('clicked', lambda w: soundcard.synth.play_track(
             self.m_t.get_track_of_tone(self.m_t.m_tone)))
         self.g_wgrid.attach(b, 3, 2, 1, 1)
-        b = Gtk.Button(_("Play tone with solution"))
+        b = Gtk.Button(label=_("Play tone with solution"))
         b.connect('clicked', lambda w: soundcard.synth.play_track(
             self.m_t.get_track_of_solution(self.m_t.m_tone)))
         self.g_wgrid.attach(b, 4, 2, 1, 1)
-        l = Gtk.Label(_("You should listen to both tones several times and try to hear the difference and the similarity between the tones."))
+        l = Gtk.Label(label=_("You should listen to both tones several times and try to hear the difference and the similarity between the tones."))
         self.g_wgrid.attach(l, 0, 3, 4, 1)
-        b = Gtk.Button(_("Play cadence"))
+        b = Gtk.Button(label=_("Play cadence"))
 
         def play_cadence(*w):
             solfege.soundcard.synth.play_track(self.m_t.get_track_of_cadence())
         b.connect('clicked', play_cadence)
         self.g_wgrid.attach(b, 0, 4, 3, 1)
-        b = Gtk.Button(_("Done"))
+        b = Gtk.Button(label=_("Done"))
 
         def done(*w):
             self.end_practise_wrong_answer()
@@ -507,7 +507,7 @@ class Gui(abstract.Gui):
         self.add_watch('tones', _ff)
 
         # Tempo the music is played
-        self.g_config_grid.attach(Gtk.Label("BPM:"), 0, 5, 1, 1)
+        self.g_config_grid.attach(Gtk.Label(label="BPM:"), 0, 5, 1, 1)
         min_bpm, max_bpm = 30, 250
         scale = Gtk.Scale.new_with_range(Gtk.Orientation.HORIZONTAL, min_bpm, max_bpm, 10)
         scale.set_value_pos(Gtk.PositionType.LEFT)
@@ -609,7 +609,7 @@ class Gui(abstract.Gui):
             b = _(" (builtin)") if 'cadence' in self.m_t.m_P.blocklists \
                 else ""
             for k in Teacher.cadence:
-                btn = Gtk.CheckButton(Teacher.cadence[k]['name'] + b)
+                btn = Gtk.CheckButton(label=Teacher.cadence[k]['name'] + b)
                 btn.show()
                 btn.set_active(True)
                 self.m_t.m_cadences[k] = True
@@ -619,7 +619,7 @@ class Gui(abstract.Gui):
             if 'cadence' in self.m_t.m_P.blocklists:
                 for idx, c in enumerate(self.m_t.m_P.blocklists['cadence']):
                     name = c.get('name', _("Unnamed"))
-                    btn = Gtk.CheckButton(name)
+                    btn = Gtk.CheckButton(label=name)
                     btn.show()
                     btn.set_active(True)
                     self.m_t.m_cadences[idx] = True

@@ -16,6 +16,7 @@
 
 
 from gi.repository import GObject
+from gi.repository import GLib
 from gi.repository import Gtk
 
 from solfege import abstract
@@ -56,7 +57,7 @@ class Teacher(abstract.Teacher):
         ERR_PICKY: you have to solve this question before you are allowed to create new
         """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if solfege.app.m_test_mode:

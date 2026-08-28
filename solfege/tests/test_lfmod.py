@@ -91,4 +91,4 @@ class TestLfMod(TmpFileBase):
         mod = parse_tree_interpreter(self.p.tree)
         self.assertEqual(mod.m_globals['var'], 55)
 
-suite = unittest.makeSuite(TestLfMod)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestLfMod)

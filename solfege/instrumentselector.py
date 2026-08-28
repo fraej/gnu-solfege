@@ -32,12 +32,13 @@ class MidiInstrumentMenu(Gtk.Menu):
         self.m_callback = callback
         for x in range(len(soundcard.instrument_names)):
             if x % 8 == 0:
-                menuitem = Gtk.MenuItem(soundcard.instrument_sections[x // 8])
+                menuitem = Gtk.MenuItem(
+                    label=soundcard.instrument_sections[x // 8])
                 submenu = Gtk.Menu()
                 self.append(menuitem)
                 menuitem.set_submenu(submenu)
                 menuitem.show()
-            item = Gtk.MenuItem(soundcard.instrument_names[x])
+            item = Gtk.MenuItem(label=soundcard.instrument_names[x])
             item.connect('activate', self.on_activate, x)
             submenu.append(item)
             item.show()
@@ -47,17 +48,17 @@ class MidiInstrumentMenu(Gtk.Menu):
         self.m_callback(instrument)
 
 
-class nInstrumentSelector(Gtk.VBox, cfg.ConfigUtils):
+class nInstrumentSelector(Gtk.Box, cfg.ConfigUtils):
 
     def __init__(self, exname, name, sizegroup):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         cfg.ConfigUtils.__dict__['__init__'](self, exname)
         self.m_name = name
         hbox = gu.bHBox(self)
         hbox.set_spacing(gu.PAD_SMALL)
 
         self.g_button = Gtk.Button(
-              soundcard.instrument_names[self.get_int(self.m_name)])
+              label=soundcard.instrument_names[self.get_int(self.m_name)])
         self.g_button.connect('clicked', self.on_btnclick)
         hbox.pack_start(self.g_button, True, True, 0)
         g = Gtk.VolumeButton()
@@ -71,7 +72,7 @@ class nInstrumentSelector(Gtk.VBox, cfg.ConfigUtils):
         self.g_menu = MidiInstrumentMenu(self.on_instrument_selected)
         self.m_instrument = self.get_int('preferred_instrument')
 
-        hbox = Gtk.HBox()
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_spacing(6)
         self.pack_start(hbox, True, True, 0)
 
@@ -96,10 +97,10 @@ class nInstrumentSelector(Gtk.VBox, cfg.ConfigUtils):
 
 
 def FramedInstrumentSelector(title, exname, varname, sizegroup):
-    box = Gtk.HBox()
+    box = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
     box.set_spacing(6)
     label = Gtk.Label(label=title)
-    label.set_alignment(0.0, 0.5)
+    label.set_xalign(0.0)
     box.pack_start(label, False, False, 0)
     n = nInstrumentSelector(exname, varname, None)
     sizegroup.add_widget(label)
@@ -108,10 +109,10 @@ def FramedInstrumentSelector(title, exname, varname, sizegroup):
     return box
 
 
-class InstrumentConfigurator(Gtk.VBox, cfg.ConfigUtils):
+class InstrumentConfigurator(Gtk.Box, cfg.ConfigUtils):
 
     def __init__(self, exname, num, labeltext):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         #cfg.ConfigUtils.__init__(self, exname)
         cfg.ConfigUtils.__dict__['__init__'](self, exname)
         assert num in (2, 3)
@@ -125,7 +126,7 @@ class InstrumentConfigurator(Gtk.VBox, cfg.ConfigUtils):
         hbox = gu.bVBox(self)
         hbox.set_spacing(gu.PAD_SMALL)
 
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.g_instrsel_high = FramedInstrumentSelector(_("Highest:"), exname, 'highest_instrument', sizegroup)
         hbox.pack_start(self.g_instrsel_high, False, False, 0)
         if num == 3:

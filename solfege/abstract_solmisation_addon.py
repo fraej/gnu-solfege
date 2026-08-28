@@ -22,6 +22,7 @@ import random
 
 from gi.repository import Gtk
 from gi.repository import GObject
+from gi.repository import GLib
 
 from solfege import gu
 from solfege import soundcard, mpd
@@ -42,7 +43,7 @@ class SolmisationAddOnClass:
             self.ERR_NO_ELEMS : if no elements are set to be practised.
             """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if self.get_bool('config/picky_on_new_question') \
@@ -143,23 +144,23 @@ class SolmisationAddOnGuiClass(object):
     def add_select_elements_gui(self, row):
         self.g_element_frame = frame = Gtk.Frame(label=_("Choose tones"))
         self.g_config_grid.attach(frame, 0, row, 3, 1)
-        self.g_select_rhythms_box = Gtk.VBox()
+        self.g_select_rhythms_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.g_select_rhythms_box.set_border_width(gu.hig.SPACE_SMALL)
         frame.add(self.g_select_rhythms_box)
         self.soltogglebuttons = []
 
     def add_select_num_notes_gui(self, row):
         label = Gtk.Label(label=_("Number of tones:"))
-        label.set_alignment(1.0, 0.5)
+        label.set_xalign(1.0)
         self.g_config_grid.attach(label, 0, row, 1, 1)
         self.g_config_grid.attach(
             gu.nSpinButton(self.m_exname, "num_notes",
-                           Gtk.Adjustment(4, 1, 100, 1, 10)),
+                           Gtk.Adjustment(value=4, lower=1, upper=100, step_increment=1, page_increment=10)),
             1, row, 1, 1)
 
     def soltogglebutton(self, i):
         if i >= 0:
-            btn = Gtk.ToggleButton(solmisation_syllables[i])
+            btn = Gtk.ToggleButton(label=solmisation_syllables[i])
             btn.connect('toggled', self.select_element_cb, i)
         else:
             btn = Gtk.ToggleButton()
@@ -177,13 +178,13 @@ class SolmisationAddOnGuiClass(object):
             but.destroy()
         self.soltogglebuttons = []
 
-        gs = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        gs = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
 
         for i, v in enumerate((
                 [1, 4, -1, 8, 11, -1, 15, 18, 21, -1, 25, 28, -1, 32],
                 [0, 3, 6, 7, 10, 13, 14, 17, 20, 23, 24, 27, 30, 31, 34],
                 [2, 5, -1, 9, 12, -1, 16, 19, 22, -1, 26, 29, -1, 33])):
-            hbox = Gtk.HBox(True, 0)
+            hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL, homogeneous=True, spacing=0)
             for k in v:
                 b = self.soltogglebutton(k)
                 gs.add_widget(b)
@@ -192,10 +193,10 @@ class SolmisationAddOnGuiClass(object):
                         b.set_active(True)
                 hbox.pack_start(b, True, True, 0)
                 self.soltogglebuttons.append(b)
-            spacing = Gtk.Alignment()
+            spacing = Gtk.Box()
             if i in (0, 2):
-                spacing.set_property('left-padding', 16)
-                spacing.set_property('right-padding', 16)
+                spacing.set_margin_start(16)
+                spacing.set_margin_end(16)
             spacing.add(hbox)
             self.g_select_rhythms_box.pack_start(spacing, True, True, 0)
             spacing.show_all()

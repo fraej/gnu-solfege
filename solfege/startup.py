@@ -53,9 +53,7 @@ options, args = opt_parser.parse_args()
 
 from solfege import runtime
 runtime.init(options)
-from gi.repository import Gtk
-from gi.repository import GObject
-from gi.repository import Gdk
+from gi.repository import Gdk, GLib, GObject, Gtk
 
 
 if options.debug or options.debug_level:
@@ -113,7 +111,7 @@ def do_profiles():
            and os.listdir(os.path.join(filesystem.app_data(), 'profiles')))
 
 
-def start_gui(datadir):
+def start_gui(gtk_application, datadir):
     cfg.set_bool('config/no_random', bool(options.no_random))
 
     lessonfile.infocache = lessonfile.InfoCache()
@@ -125,7 +123,7 @@ def start_gui(datadir):
         solfege.splash_win.show_progress(_("Creating application window"))
 
     solfege.app = application.SolfegeApp(options)
-    solfege.win = w = MainWin(options, datadir)
+    solfege.win = w = MainWin(gtk_application, options, datadir)
     solfege.app.setup_sound()
     w.post_constructor()
     solfege.win.load_frontpage()
@@ -180,14 +178,37 @@ def start_gui(datadir):
     lessonfile.infocache.parse_all_files(True)
     if options.screenshots:
         make_screenshots.make_screenshots()
+    if options.gtk3_smoke_test:
+        from solfege import gtk3_smoke_test
+        GLib.idle_add(gtk3_smoke_test.run)
     if options.lessonfile:
         solfege.app.practise_lessonfile(options.lessonfile)
 
 
-def start_app(datadir):
+def _start_gui_once(gtk_application, datadir):
+    try:
+        start_gui(gtk_application, datadir)
+    finally:
+        # start_app holds the application while the GUI is initialized on an
+        # idle callback. Once MainWin exists, its application ownership keeps
+        # the process alive.
+        gtk_application.release()
+    return False
+
+
+def _on_activate(gtk_application, datadir):
+    active_window = gtk_application.get_active_window()
+    if active_window:
+        active_window.present()
+        return
+
+    # With --no-splash there is no window to keep Gtk.Application alive until
+    # the idle callback creates MainWin.
+    gtk_application.hold()
+
     global splash_win
     if not options.no_splash:
-        solfege.splash_win = splash_win = SplashWin()
+        solfege.splash_win = splash_win = SplashWin(gtk_application)
         time.sleep(0.1)
         Gdk.flush()
         while Gtk.events_pending():
@@ -205,5 +226,13 @@ def start_app(datadir):
     Gtk.StyleContext.add_provider_for_screen(
         Gdk.Screen.get_default(), style_provider,
         Gtk.STYLE_PROVIDER_PRIORITY_APPLICATION)
-    GObject.timeout_add(1, start_gui, datadir)
-    Gtk.main()
+    GLib.timeout_add(1, _start_gui_once, gtk_application, datadir)
+
+
+def start_app(datadir):
+    gtk_application = Gtk.Application(application_id="org.gnu.solfege")
+    gtk_application.connect("activate", _on_activate, datadir)
+    status = gtk_application.run([sys.argv[0]])
+    if getattr(solfege, 'gtk3_smoke_test_failed', False):
+        return 1
+    return status

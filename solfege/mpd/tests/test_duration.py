@@ -40,5 +40,5 @@ class TestDuration(unittest.TestCase):
         d3 = Duration(4, 2, Rat(2, 3))
         self.assertEqual(d3.get_rat_value(), Rat(7, 24))
 
-suite = unittest.makeSuite(TestDuration)
+suite = unittest.defaultTestLoader.loadTestsFromTestCase(TestDuration)
 suite.addTest(doctest.DocTestSuite(solfege.mpd.duration))

@@ -42,20 +42,19 @@ class TracebackWindow(Gtk.Dialog):
         self.vbox.pack_start(scrollwin, True, True, 0)
         self.g_text = Gtk.TextView()
         scrollwin.add(self.g_text)
-        self.add_button("gtk-clear", self.RESPONSE_CLEAR)
-        self.add_button("gtk-close", Gtk.ResponseType.CLOSE)
+        self.add_button(_("_Clear"), self.RESPONSE_CLEAR)
+        self.add_button(_("_Close"), Gtk.ResponseType.CLOSE)
         self.connect('response', self.on_response)
 
     def write(self, txt):
         if getattr(solfege, 'win', False):
             self.set_transient_for(solfege.win)
-        if ("DeprecationWarning:" in txt) or \
-           (not self.m_show_gtk_warnings and (
-            "GtkWarning" in txt
-            or "PangoWarning" in txt
-            or ("Python C API version mismatch" in txt and
-                ("solfege_c_midi" in txt or "swig" in txt))
-            )):
+        if not self.m_show_gtk_warnings and (
+                "DeprecationWarning:" in txt
+                or "GtkWarning" in txt
+                or "PangoWarning" in txt
+                or ("Python C API version mismatch" in txt and
+                    ("solfege_c_midi" in txt or "swig" in txt))):
             return
         sys.stdout.write(txt)
         if txt.strip():

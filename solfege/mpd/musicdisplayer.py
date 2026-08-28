@@ -36,7 +36,7 @@ class MusicDisplayer(Gtk.ScrolledWindow):
         self.g_d = Gtk.DrawingArea()
         self.g_d.show()
 
-        self.add_with_viewport(self.g_d)
+        self.add(self.g_d)
         self.g_d.connect("draw", self.on_draw)
         self.g_d.add_events(Gdk.EventMask.EXPOSURE_MASK | Gdk.EventMask.BUTTON_RELEASE_MASK | Gdk.EventMask.BUTTON_PRESS_MASK | Gdk.EventMask.POINTER_MOTION_MASK)
         self.g_d.connect("button_press_event", self.on_button_press_event)
@@ -159,7 +159,7 @@ class ChordEditor(MusicDisplayer):
         self.emit('clicked', dist)
 
     def on_event(self, drawingarea, event):
-        if event.type == Gdk.MOTION_NOTIFY:
+        if event.type == Gdk.EventType.MOTION_NOTIFY:
             dim = engravers.dimentions[self.m_fontsize]
             dist = int((event.y - dim.first_staff_ypos) / dim.linespacing * 2)
             self._yp = dist
@@ -173,9 +173,11 @@ class ChordEditor(MusicDisplayer):
             if self.m_cursor == 'erase':
                 return
             if self.m_cursor == 'notehead':
-                eng = engravers.NoteheadEngraver(Rat(0, 1), "20-tight", 0, self._yp, 2, 0, 0, 0)
+                eng = engravers.NoteheadEngraver(
+                    Rat(0, 1), 20, 0, self._yp, 2, 0, 0, 0)
             else:
-                eng = engravers.AccidentalsEngraver(Rat(0, 1), "20-tight", {self._yp: [int(self.m_cursor)]})
+                eng = engravers.AccidentalsEngraver(
+                    Rat(0, 1), 20, {self._yp: [int(self.m_cursor)]})
             eng.m_xpos = 50
             eng.engrave(darea, self.black_gc, staff_centrum)
 

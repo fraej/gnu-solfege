@@ -23,6 +23,7 @@ import traceback
 from gi.repository import Gtk
 from gi.repository import Gdk
 from gi.repository import GObject
+from gi.repository import GLib
 
 from solfege import gu
 from solfege import inputwidgets
@@ -75,11 +76,11 @@ class Teacher(cfg.ConfigUtils, QstatusDefs):
                 def remove_timeout(self=self):
                     self.m_timeout_handle = None
                     self.g_view.new_question()
-                self.m_timeout_handle = GObject.timeout_add(int(self.get_float('seconds_before_new_question') * 1000), remove_timeout)
+                self.m_timeout_handle = GLib.timeout_add(int(self.get_float('seconds_before_new_question') * 1000), remove_timeout)
 
     def end_practise(self):
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
         self.q_status = self.QSTATUS_NO
         soundcard.synth.stop()
@@ -152,7 +153,7 @@ class MelodicIntervalTeacher(Teacher):
         assert isinstance(H, str)
 
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if solfege.app.m_test_mode:
@@ -261,7 +262,7 @@ class RhythmAddOnClass:
                self.ERR_NO_ELEMS : if no elements are set to be practised.
         """
         if self.m_timeout_handle:
-            GObject.source_remove(self.m_timeout_handle)
+            GLib.source_remove(self.m_timeout_handle)
             self.m_timeout_handle = None
 
         if self.get_bool('config/picky_on_new_question') \
@@ -351,7 +352,7 @@ class RhythmAddOnClass:
                 self.set_int(n, default)
 
 
-class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
+class Gui(Gtk.Box, cfg.ConfigUtils, QstatusDefs):
     """Important members:
          - practise_box
          - action_area
@@ -360,23 +361,23 @@ class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
     short_delay = 700
 
     def __init__(self, teacher, no_notebook=False):
-        Gtk.VBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.VERTICAL)
         cfg.ConfigUtils.__init__(self, teacher.m_exname)
         assert type(no_notebook) == bool
         self._std_buttons = []
         self.m_key_bindings = {}
         self.m_t = teacher
 
-        vbox = Gtk.VBox()
+        vbox = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         vbox.set_spacing(gu.PAD)
         vbox.set_border_width(gu.PAD)
         vbox.show()
 
-        self.practise_box = Gtk.VBox()
+        self.practise_box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.practise_box.show()
         vbox.pack_start(self.practise_box, True, True, 0)
 
-        box = Gtk.VBox()
+        box = Gtk.Box(orientation=Gtk.Orientation.VERTICAL)
         self.practise_box.pack_start(box, False, False, padding=gu.hig.SPACE_LARGE)
         box.show()
         self.g_lesson_heading = Gtk.Label()
@@ -386,7 +387,7 @@ class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
         self.g_lesson_description.set_line_wrap(True)
         box.pack_start(self.g_lesson_description, True, True, 0)
 
-        self.action_area = Gtk.HBox()
+        self.action_area = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         self.action_area.show()
         vbox.pack_start(self.action_area, False, False, 0)
 
@@ -405,7 +406,7 @@ class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
             self.g_notebook.append_page(vbox, Gtk.Label(label=_("Practise")))
             self.g_notebook.append_page(self.g_config_grid, Gtk.Label(label=_("Config")))
             self.g_notebook.show()
-        self.g_cancel_test = Gtk.Button(_("_Cancel test"))
+        self.g_cancel_test = Gtk.Button(label=_("_Cancel test"))
         self.g_cancel_test.connect('clicked', self.on_cancel_test)
         self.action_area.pack_end(self.g_cancel_test, False, False, 0)
 
@@ -415,10 +416,9 @@ class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
         in on_start_practise, preferable telling the file name of the
         lesson file.
         """
-        img = Gtk.Image()
-        img.set_from_stock(Gtk.STOCK_DIALOG_WARNING,
-                           Gtk.IconSize.BUTTON)
-        hbox = Gtk.HBox()
+        img = Gtk.Image.new_from_icon_name("dialog-warning-symbolic",
+                                           Gtk.IconSize.BUTTON)
+        hbox = Gtk.Box(orientation=Gtk.Orientation.HORIZONTAL)
         hbox.set_border_width(12)
         self.practise_box.set_child_packing(self.g_lesson_heading, False, False, 0, 0)
         hbox.set_spacing(6)
@@ -705,7 +705,8 @@ class Gui(Gtk.VBox, cfg.ConfigUtils, QstatusDefs):
         question automatically. The GUI is added to self.g_config_grid
         at the row set by the ROW variable.
         """
-        adj = Gtk.Adjustment(0, 0, 10, 0.1, 1)
+        adj = Gtk.Adjustment(value=0, lower=0, upper=10,
+                             step_increment=0.1, page_increment=1)
         spin = gu.nSpinButton(self.m_exname, 'seconds_before_new_question',
                        adj)
         spin.set_digits(1)
@@ -821,7 +822,10 @@ class RhythmAddOnGuiClass(object):
         label.show()
         grid.attach(label, 0, row, 1, 1)
         grid.attach(gu.nSpinButton(self.m_exname, "num_beats",
-                                   Gtk.Adjustment(4, 1, 100, 1, 10)),
+                                   Gtk.Adjustment(
+                                       value=4, lower=1, upper=100,
+                                       step_increment=1,
+                                       page_increment=10)),
                     1, row, 1, 1)
         #
         label = Gtk.Label(label=_("Count in before question:"))
@@ -829,7 +833,10 @@ class RhythmAddOnGuiClass(object):
         label.show()
         grid.attach(label, 0, row + 1, 1, 1)
         grid.attach(gu.nSpinButton(self.m_exname, "count_in",
-                                   Gtk.Adjustment(2, 0, 10, 1, 10)),
+                                   Gtk.Adjustment(
+                                       value=2, lower=0, upper=10,
+                                       step_increment=1,
+                                       page_increment=10)),
                     1, row + 1, 1, 1)
 
     def pngcheckbutton(self, i):
@@ -904,7 +911,7 @@ class IntervalGui(Gui):
         This will be called by HarmonicInterval and MelodicInterval
         constructor
         """
-        label = Gtk.Label(_("Input interface"))
+        label = Gtk.Label(label=_("Input interface"))
         label.props.halign = Gtk.Align.END
         combo = Gtk.ComboBoxText()
         for i in range(len(inputwidgets.inputwidget_names)):
@@ -1009,7 +1016,8 @@ class LessonbasedGui(Gui):
         self.g_random_transpose.show()
         self.g_config_grid.attach(self.g_random_transpose, 1, row, 1, 1)
         ###
-        self.g_random_transpose_button = button = Gtk.Button(_("Change ..."))
+        self.g_random_transpose_button = button = Gtk.Button(
+            label=_("Change ..."))
         button.show()
         button.connect('clicked', self.run_random_transpose_dialog)
         self.g_config_grid.attach(button, 2, row, 1, 1)

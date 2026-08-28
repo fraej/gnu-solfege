@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -17,7 +17,7 @@
 # over all the lessonfiles.
 
 import gi
-pyGtk.require("2.0")
+gi.require_version("Gtk", "3.0")
 
 import sys, re, os, os.path
 sys.path.append(".")
@@ -26,7 +26,7 @@ import solfege, solfege.dataparser, solfege.lessonfile
 
 
 def tex_subst(s):
-    return s.replace("&", "\&").replace("#", "\#")
+    return s.replace("&", r"\&").replace("#", r"\#")
 
 
 def so2ly(s, musicformat):

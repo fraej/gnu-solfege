@@ -15,9 +15,6 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import codecs
-
-
 class Heading(object):
 
     def __init__(self, level, text):
@@ -49,9 +46,8 @@ class TableRow(list):
 class ReportWriterCommon(object):
 
     def __init__(self, report, filename):
-        self.m_outfile = codecs.open(filename, "w", "utf-8")
-        self.write_report(report)
-        self.m_outfile.close()
+        with open(filename, "w", encoding="utf-8") as self.m_outfile:
+            self.write_report(report)
 
 
 class HtmlReport(ReportWriterCommon):

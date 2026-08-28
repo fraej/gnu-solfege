@@ -25,13 +25,13 @@ from solfege import gu
 from solfege import lessonfilegui
 
 
-class AbstractQuestionNameTable(Gtk.Table, cfg.ConfigUtils):
+class AbstractQuestionNameTable(gu.LegacyGrid, cfg.ConfigUtils):
     """
     Base class for QuestionNameButtonTable and QuestionNameCheckButtonTable.
     """
 
     def __init__(self, exname):
-        Gtk.Table.__init__(self)
+        gu.LegacyGrid.__init__(self)
         cfg.ConfigUtils.__init__(self, exname)
         self._ignore_watch = 0
         self.add_watch('ask_for_names', self.ask_for_names_changed)
@@ -182,20 +182,20 @@ class QuestionNameCheckButtonTable(AbstractQuestionNameTable):
 class RandomTransposeDialog(Gtk.Dialog):
 
     def __init__(self, initial_value, parent):
-        Gtk.Dialog.__init__(self, _("Set transposition"), parent, 0,
-           (Gtk.STOCK_CANCEL, Gtk.ResponseType.CANCEL,
-            Gtk.STOCK_OK, Gtk.ResponseType.OK,
-            ))
+        Gtk.Dialog.__init__(self, title=_("Set transposition"),
+                            transient_for=parent, flags=0)
+        self.add_buttons(_("_Cancel"), Gtk.ResponseType.CANCEL,
+                         _("_OK"), Gtk.ResponseType.OK)
         self.set_default_size(100, 100)
         dlg_vbox = gu.hig_dlg_vbox()
         self.vbox.pack_start(dlg_vbox, True, True, 0)
         xbox, vbox = gu.hig_category_vbox(_("Select how to do random transposition"))
         dlg_vbox.pack_start(xbox, True, True, 0)
         label = Gtk.Label(label=_("""You can read about the different types of transposition in the lesson file documentation available on the Help menu."""))
-        spin_sg = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        spin_sg = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         label.set_line_wrap(True)
         vbox.pack_start(label, True, True, 0)
-        sizegroup = Gtk.SizeGroup(Gtk.SizeGroupMode.HORIZONTAL)
+        sizegroup = Gtk.SizeGroup(mode=Gtk.SizeGroupMode.HORIZONTAL)
         self.m_buttons = {}
         self.m_spins = {}
         self.m_buttons['no'] = b1 = Gtk.RadioButton.new_with_label(None, _("No"))
@@ -205,10 +205,10 @@ class RandomTransposeDialog(Gtk.Dialog):
         self.m_spins['yes'] = []
         hbox = gu.bHBox(vbox)
         label_b = Gtk.Label()
-        label_b.set_alignment(0.4, 0.5)
+        label_b.set_xalign(0.4)
         label_b.set_markup('<span size="xx-large">♭</span>')
         label_x = Gtk.Label()
-        label_x.set_alignment(0.4, 0.5)
+        label_x.set_xalign(0.4)
         label_x.set_markup('<span size="xx-large">♯</span>')
         spin_sg.add_widget(label_b)
         spin_sg.add_widget(label_x)
@@ -221,8 +221,8 @@ class RandomTransposeDialog(Gtk.Dialog):
         hbox = gu.bHBox(vbox)
         hbox.pack_start(self.m_buttons['accidentals'], True, True, 0)
         self.m_spins['accidentals'] = [
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -7, 7, 1, 1)),  # 0.0, 0),
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -7, 7, 1, 1))]  # , 0.0, 0)]
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-7, upper=7, step_increment=1, page_increment=1)),  # 0.0, 0),
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-7, upper=7, step_increment=1, page_increment=1))]  # , 0.0, 0)]
         spin_sg.add_widget(self.m_spins['accidentals'][0])
         spin_sg.add_widget(self.m_spins['accidentals'][1])
         hbox.pack_start(self.m_spins['accidentals'][0], True, True, 0)
@@ -236,8 +236,8 @@ class RandomTransposeDialog(Gtk.Dialog):
         hbox = gu.bHBox(vbox)
         hbox.pack_start(self.m_buttons['key'], True, True, 0)
         self.m_spins['key'] = [
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -10, 10, 1, 1)),  # 0.0, 0),
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -10, 10, 1, 1))]  # , 0.0, 0)]
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-10, upper=10, step_increment=1, page_increment=1)),  # 0.0, 0),
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-10, upper=10, step_increment=1, page_increment=1))]  # , 0.0, 0)]
         hbox.pack_start(self.m_spins['key'][0], True, True, 0)
         hbox.pack_start(self.m_spins['key'][1], True, True, 0)
         gu.SpinButtonRangeController(self.m_spins['key'][0],
@@ -249,8 +249,8 @@ class RandomTransposeDialog(Gtk.Dialog):
         hbox = gu.bHBox(vbox)
         hbox.pack_start(self.m_buttons['atonal'], True, True, 0)
         self.m_spins['atonal'] = [
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -10, 10, 1, 1)),  # 0.0, 0),
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -10, 10, 1, 1))]  # , 0.0, 0)]
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-10, upper=10, step_increment=1, page_increment=1)),  # 0.0, 0),
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-10, upper=10, step_increment=1, page_increment=1))]  # , 0.0, 0)]
         hbox.pack_start(self.m_spins['atonal'][0], True, True, 0)
         hbox.pack_start(self.m_spins['atonal'][1], True, True, 0)
         gu.SpinButtonRangeController(self.m_spins['atonal'][0],
@@ -262,8 +262,8 @@ class RandomTransposeDialog(Gtk.Dialog):
         hbox = gu.bHBox(vbox)
         hbox.pack_start(self.m_buttons['semitones'], True, True, 0)
         self.m_spins['semitones'] = [
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -100, 100, 1, 1)),  # , 0.0, 0),
-            Gtk.SpinButton(adjustment=Gtk.Adjustment(0, -100, 100, 1, 1))]  # , 0.0, 0)]
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-100, upper=100, step_increment=1, page_increment=1)),  # , 0.0, 0),
+            Gtk.SpinButton(adjustment=Gtk.Adjustment(value=0, lower=-100, upper=100, step_increment=1, page_increment=1))]  # , 0.0, 0)]
         hbox.pack_start(self.m_spins['semitones'][0], True, True, 0)
         hbox.pack_start(self.m_spins['semitones'][1], True, True, 0)
         gu.SpinButtonRangeController(self.m_spins['semitones'][0],

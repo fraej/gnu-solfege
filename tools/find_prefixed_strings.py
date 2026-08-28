@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 """
 Used to sanity check prefixes used in lesson files.
 """
@@ -33,7 +33,7 @@ def list_name_prefixes():
             s = open(fn, 'r').read()
             for match in prefix_re.finditer(s):
                 if match.group('prefix') not in prefixes:
-                    print match.group('prefix')
+                    print(match.group('prefix'))
                     prefixes.add(match.group('prefix'))
 
 if options.list_prefixes:
@@ -45,16 +45,16 @@ for fn in glob.glob("lesson-files/*"):
         s = open(fn, 'r').read()
         for match in r.finditer(s):
             if match.group('prefix') not in db:
-                print "Found prefix:", match.group('prefix')
+                print("Found prefix:", match.group('prefix'))
                 db[match.group('prefix')] = [fn]
             else:
                 if db[match.group('prefix')][-1] != fn:
                     db[match.group('prefix')].append(fn)
 if options.list_strings:
     for s in db.keys():
-        print s
+        print(s)
         if options.display_filename:
             for fn in db[s]:
-                print "\t", fn
+                print("\t", fn)
 
-print "Skal vi bruke dim eller diminished?"
+print("Skal vi bruke dim eller diminished?")

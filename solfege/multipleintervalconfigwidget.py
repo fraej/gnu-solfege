@@ -23,21 +23,21 @@ from solfege import gu
 from solfege import mpd
 
 
-class IntervalCheckBox(Gtk.HBox):
+class IntervalCheckBox(Gtk.Box):
     """
     Emit 'value-changed' if the state of an interval has changed.
     """
     __gsignals__ = {
-        'value-changed': (GObject.SIGNAL_RUN_FIRST, None,
+        'value-changed': (GObject.SignalFlags.RUN_FIRST, None,
                       (str,))
     }
 
     def __init__(self):
-        Gtk.HBox.__init__(self)
+        Gtk.Box.__init__(self, orientation=Gtk.Orientation.HORIZONTAL)
         self.checkbox_dict = {}
         for x in range(1, mpd.interval.max_interval + 1):
             self.checkbox_dict[x] = c \
-                = Gtk.ToggleButton(mpd.interval.short_name[x])
+                = Gtk.ToggleButton(label=mpd.interval.short_name[x])
             c.set_name("intervalToggleButton")
             c.connect('toggled', self.on_toggle)
             c.show()
@@ -103,20 +103,22 @@ class MultipleIntervalConfigWidget(cfg.ConfigUtils):
         self._children = []
         self.m_ignore_iclick = 0
         #####
-        l = Gtk.Label(_("Number of intervals:"))
+        l = Gtk.Label(label=_("Number of intervals:"))
         self._children.append(l)
         l.props.halign = Gtk.Align.END
         grid.attach(l, x, y, 1, 1)
         #####
         self.g_num_int_spin = gu.nSpinButton(self.m_exname,
                        'number_of_intervals',
-                       Gtk.Adjustment(1, 1, self.MAX_INT, 1, self.MAX_INT))
+                       Gtk.Adjustment(
+                           value=1, lower=1, upper=self.MAX_INT,
+                           step_increment=1, page_increment=self.MAX_INT))
         self._children.append(self.g_num_int_spin)
         self.add_watch('number_of_intervals', self.on_num_int_spin)
         grid.attach(self.g_num_int_spin, x + 1, y, 1, 1)
         #####
         self.g_all_int_button = Gtk.Button(
-            _("Configure all intervals like this"))
+            label=_("Configure all intervals like this"))
         self._children.append(self.g_all_int_button)
         self.g_all_int_button.connect('clicked',
             self.configure_all_like_active_interval)
@@ -124,13 +126,16 @@ class MultipleIntervalConfigWidget(cfg.ConfigUtils):
         self.add_watch('number_of_intervals', lambda n, self=self:
                self.g_all_int_button.set_sensitive(self.get_int(n) != 1))
         #####
-        l = Gtk.Label(_("Toggle buttons are for interval number:"))
+        l = Gtk.Label(label=_("Toggle buttons are for interval number:"))
         self._children.append(l)
         l.props.halign = Gtk.Align.END
         grid.attach(l, x, y + 1, 1, 1)
         #####
         self.m_int_sel_adjustment \
-             = Gtk.Adjustment(1, 1, self.get_int('number_of_intervals'), 1)
+             = Gtk.Adjustment(
+                 value=1, lower=1,
+                 upper=self.get_int('number_of_intervals'),
+                 step_increment=1)
         self.g_int_sel_spin = gu.nSpinButton(self.m_exname,
                   'cur_edit_interval', self.m_int_sel_adjustment, digits=0)
         self._children.append(self.g_int_sel_spin)
@@ -141,24 +146,26 @@ class MultipleIntervalConfigWidget(cfg.ConfigUtils):
         self._children.append(g)
         grid.attach(g, x, y + 2, 3, 1)
 
-        label = Gtk.Label(_("Up:"))
+        label = Gtk.Label(label=_("Up:"))
         label.props.halign = Gtk.Align.END
         g.attach(label, 0, 0, 1, 1)
         self.g_interval_chk = {}
         for i in range(1, mpd.interval.max_interval + 1):
-            self.g_interval_chk[i] = c = Gtk.ToggleButton(mpd.interval.short_name[i])
+            self.g_interval_chk[i] = c = Gtk.ToggleButton(
+                label=mpd.interval.short_name[i])
             c.set_name("intervalToggleButton")
             c.set_active(True)
             c.connect('clicked', self.on_interval_chk_clicked, i)
             g.attach(c, i, 0, 1, 1)
 
-        label = Gtk.Label(_("Down:"))
+        label = Gtk.Label(label=_("Down:"))
         label.props.halign = Gtk.Align.END
         g.attach(label, 0, 1, 1, 1)
         v = list(range(mpd.interval.min_interval, 0))
         v.reverse()
         for i in v:
-            self.g_interval_chk[i] = c = Gtk.ToggleButton(mpd.interval.short_name[-i])
+            self.g_interval_chk[i] = c = Gtk.ToggleButton(
+                label=mpd.interval.short_name[-i])
             c.set_name("intervalToggleButton")
             c.set_active(True)
             c.connect('clicked', self.on_interval_chk_clicked, i)
@@ -167,7 +174,7 @@ class MultipleIntervalConfigWidget(cfg.ConfigUtils):
         if self.g_num_int_spin.get_value_as_int() == 1:
             self.g_all_int_button.set_sensitive(False)
         ######
-        b = Gtk.Button(_("Reset to default values"))
+        b = Gtk.Button(label=_("Reset to default values"))
         self._children.append(b)
         grid.attach(b, x, y + 3, 4, 1)
         b.connect('clicked', self.reset_to_default)
@@ -206,8 +213,10 @@ class MultipleIntervalConfigWidget(cfg.ConfigUtils):
         self.set_list('ask_for_intervals_%i' % i, v)
 
     def on_num_int_spin(self, _o):
-        adj = Gtk.Adjustment(self.get_int('cur_edit_interval'), 1,
-                  self.get_int('number_of_intervals'), 1, self.MAX_INT)
+        adj = Gtk.Adjustment(
+            value=self.get_int('cur_edit_interval'), lower=1,
+            upper=self.get_int('number_of_intervals'), step_increment=1,
+            page_increment=self.MAX_INT)
         self.g_int_sel_spin.set_adjustment(adj)
         self.g_int_sel_spin.update()
 

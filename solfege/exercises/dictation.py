@@ -59,11 +59,13 @@ class Gui(abstract.LessonbasedGui):
         # action_area #
         ###############
         self.g_partbox = gu.bHBox(self.practise_box, False)
-        self.g_go_back = Gtk.Button(stock='gtk-go-back')
+        self.g_go_back = Gtk.Button.new_from_icon_name(
+            "go-previous-symbolic", Gtk.IconSize.BUTTON)
         self.g_go_back.connect('clicked', self.select_previous)
         self.g_go_back.show()
         self.action_area.pack_start(self.g_go_back, False, False, 0)
-        self.g_go_forward = Gtk.Button(stock='gtk-go-forward')
+        self.g_go_forward = Gtk.Button.new_from_icon_name(
+            "go-next-symbolic", Gtk.IconSize.BUTTON)
         self.g_go_forward.show()
         self.g_go_forward.connect('clicked', self.select_next)
         self.action_area.pack_start(self.g_go_forward, False, False, 0)
@@ -232,8 +234,8 @@ class Gui(abstract.LessonbasedGui):
         self._update()
 
     def create_pixmap_button(self, i=None):
-        im = Gtk.Image()
-        im.set_from_stock("solfege-rhythm-c4", Gtk.IconSize.LARGE_TOOLBAR)
+        im = solfege.win.icons.new_image(
+            "solfege-rhythm-c4", Gtk.IconSize.LARGE_TOOLBAR)
         im.show()
         if i is not None:
             btn = Gtk.Button.new_with_label(_("Part %d") % (i+1))
