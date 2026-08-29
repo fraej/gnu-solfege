@@ -46,12 +46,9 @@ sudo apt install \
 Clone your GitHub repository and enter the source directory:
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/gnu-solfege.git
+git clone https://github.com/fraej/gnu-solfege.git
 cd gnu-solfege
 ```
-
-Replace `YOUR_GITHUB_USERNAME` with the account or organization that hosts
-the fork.
 
 Generate the files omitted from a Git checkout:
 
